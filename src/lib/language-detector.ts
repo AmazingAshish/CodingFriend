@@ -682,11 +682,5 @@ function applyAdditionalHeuristics(code: string, scores: Record<string, number>)
 // Export for use
 export { detectLanguage };
 export type { LanguageDetectionResult, LanguagePattern };
-
-That code is causing this error:
-
-src/lib/language-detector.ts:601:40
-Type error: Cannot find name 'LanguageDetectionResult'.
-
-src/lib/language-detector.ts:601:66
-Type error: Cannot find name 'LanguagePattern'.
+```
+- an error is occurring in the file `src/lib/language-detector.ts`. The error message is as follows: `Type error: Cannot find name 'LanguageDetectionResult'.` and `Type error: Cannot find name 'LanguagePattern'.` Please address this issue.
