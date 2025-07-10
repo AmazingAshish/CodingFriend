@@ -40,12 +40,25 @@ const InitialState: FC = () => (
 
 
 const MarkdownRenderer = ({ content, activeTab }: { content: string; activeTab: ActiveTab }) => {
+  const parseTable = (markdown: string): string => {
+    const tableRegex = /^\|(.+)\|\n\|-+\|([\s\S]+?)(?=\n\n|\n\s*$)/gm;
+    return markdown.replace(tableRegex, (match, headerRow, bodyRows) => {
+      const headers = headerRow.split('|').slice(1, -1).map(h => h.trim());
+      const rows = bodyRows.trim().split('\n').map(r => r.split('|').slice(1, -1).map(c => c.trim()));
+
+      const headerHtml = `<thead><tr class="border-b border-border bg-muted/50">${headers.map(h => `<th class="p-2 text-left font-semibold">${h}</th>`).join('')}</tr></thead>`;
+      const bodyHtml = `<tbody>${rows.map(row => `<tr class="border-b border-border">${row.map(cell => `<td class="p-2">${cell}</td>`).join('')}</tr>`).join('')}</tbody>`;
+
+      return `<div class="not-prose my-4 overflow-x-auto"><table class="w-full border-collapse border border-border">${headerHtml}${bodyHtml}</table></div>`;
+    });
+  };
+
   const renderSection = (sectionContent: string, sectionIndex: number) => {
     const codeBlockRegex = /```(\w+)?\s*([\s\S]*?)```/g;
     const parts = sectionContent.split(codeBlockRegex);
 
     return (
-      <div key={`section-${sectionIndex}`}>
+      <div key={`section-${sectionIndex}`} className="relative">
          {sectionIndex > 0 && activeTab === 'solutions' && <hr className={`my-6 border-t-2 border-primary/20`} />}
         {parts.map((part, index) => {
           if (index % 3 === 2) { // This is the code content
@@ -65,21 +78,24 @@ const MarkdownRenderer = ({ content, activeTab }: { content: string; activeTab: 
             );
           }
           if (index % 3 === 0) { // This is the markdown text
-              let html = part
+            let textWithTables = parseTable(part);
+
+            let html = textWithTables
               .replace(/^### (.*$)/gim, '<h3 class="font-semibold text-lg !mt-4">$1</h3>')
               .replace(/^## (.*$)/gim, '<h2 class="font-semibold text-xl !mt-6">$1</h2>')
               .replace(/^# (.*$)/gim, '<h1 class="font-bold text-2xl !mt-8">$1</h1>')
-              .replace(/---/g, '<hr class="my-6 border-border/20" />')
               .replace(/\*\*(.*)\*\*/g, '<strong>$1</strong>')
               .replace(/\*(.*)\*/g, '<em>$1</em>')
               .replace(/`([^`]+)`/g, '<code class="inline-code text-sm font-mono bg-muted/50 dark:bg-muted/30 text-accent-foreground p-1 rounded-sm">$1</code>')
-              .replace(/^\s*[-*] (.*)/gm, '<li class="my-1">$1</li>')
+              .replace(/^\s*[-*] (.*)/gm, '<li class="my-1 ml-4">$1</li>')
               .replace(/(<li>.*<\/li>)/gs, '<ul>$1</ul>')
-              .replace(/^\s*\d+\. (.*)/gm, '<li class="my-1">$1</li>')
+              .replace(/^\s*\d+\. (.*)/gm, '<li class="my-1 ml-4">$1</li>')
               .replace(/(<li.*<\/li>)/gs, (match, p1) => {
                   if (match.includes('<ol>') || match.includes('<ul>')) return match;
-                  return /^\s*\d+\./.test(content) ? `<ol>${p1}</ol>` : `<ul>${p1}</ul>`;
+                  // A bit of a hack to differentiate, might need improvement
+                  return /<li class="my-1 ml-4">\d+\./.test(match) ? `<ol class="list-decimal list-inside">${p1}</ol>` : `<ul class="list-disc list-inside">${p1}</ul>`;
               });
+
             return <div key={index} dangerouslySetInnerHTML={{ __html: html }} />;
           }
           return null; 
