@@ -28,8 +28,12 @@ export type Result = ExplainCodeOutput | AnalyzeCodeOutput | ConvertCodeOutput |
 export type ActiveTab = "explain" | "solutions" | "convert";
 
 type ResultsState = {
-  [key in ActiveTab]: Result;
+  [key in ActiveTab]?: Result;
 };
+
+type RequestState = {
+  [key in ActiveTab]?: boolean;
+}
 
 // Debounce hook
 const useDebounce = (value: string, delay: number) => {
@@ -52,12 +56,9 @@ export const CodeCompanion = () => {
   const [targetLanguage, setTargetLanguage] = useState<string>("python");
   const [isEli5, setIsEli5] = useState<boolean>(false);
 
-  const [results, setResults] = useState<ResultsState>({
-    explain: null,
-    solutions: null,
-    convert: null,
-  });
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [results, setResults] = useState<ResultsState>({});
+  const [loadingStates, setLoadingStates] = useState<RequestState>({});
+
   const [isDetecting, setIsDetecting] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<ActiveTab>("explain");
   const { toast } = useToast();
@@ -97,8 +98,7 @@ export const CodeCompanion = () => {
       return;
     }
 
-    setIsLoading(true);
-    // Clear the result for the current tab only
+    setLoadingStates(prev => ({ ...prev, [activeTab]: true }));
     setResults(prev => ({ ...prev, [activeTab]: null }));
 
     try {
@@ -113,13 +113,7 @@ export const CodeCompanion = () => {
         res = await convertCode({ code, sourceLanguage, targetLanguage });
       }
       
-      // Only set the result if the tab hasn't changed since the request started
-      setActiveTab(prevTab => {
-        if (prevTab === currentTab) {
-          setResults(prevResults => ({ ...prevResults, [currentTab]: res }));
-        }
-        return prevTab;
-      });
+      setResults(prevResults => ({ ...prevResults, [currentTab]: res }));
 
     } catch (error: any) {
       console.error(error);
@@ -138,9 +132,11 @@ export const CodeCompanion = () => {
         description,
       });
     } finally {
-      setIsLoading(false);
+      setLoadingStates(prev => ({ ...prev, [activeTab]: false }));
     }
   };
+  
+  const isLoading = !!loadingStates[activeTab];
 
   return (
     <TooltipProvider>
@@ -197,7 +193,7 @@ export const CodeCompanion = () => {
           />
           <OutputDisplay
             isLoading={isLoading}
-            result={results[activeTab]}
+            result={results[activeTab] || null}
             activeTab={activeTab}
             targetLanguage={targetLanguage}
           />

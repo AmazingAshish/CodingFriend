@@ -84,7 +84,7 @@ export const CodeEditor: FC<CodeEditorProps> = ({ code, setCode, language }) => 
           placeholder="Paste your code here..."
           spellCheck="false"
           aria-label="Code editor input area"
-          className="w-full min-h-[120px] resize-none p-4 font-mono text-sm leading-relaxed bg-card/70 border-0 focus-visible:ring-0 focus-visible:ring-offset-0 code-editor-textarea overflow-hidden"
+          className="w-full min-h-[120px] resize-none p-4 font-mono text-sm leading-relaxed bg-card/70 border-0 focus-visible:ring-0 focus-visible:ring-offset-0 code-editor-textarea"
         />
       </CardContent>
     </Card>

@@ -52,7 +52,6 @@ interface OutputDisplayProps {
   targetLanguage?: string;
   onRefresh?: () => void;
   className?: string;
-  maxHeight?: string;
 }
 
 interface SearchState {
@@ -251,11 +250,26 @@ const EnhancedMarkdownRenderer = ({
   const parseTextContent = useCallback((text: string, highlightFn: (text: string) => string) => {
     const tableRegex = /^\|(.+)\|\r?\n\|( *[-:]+ *\|)+[\s\S]*?(?=\r?\n\r?\n|$)/gm;
     
-    if (tableRegex.test(text)) {
-      return renderTable(text, highlightFn);
-    }
+    let processedText = text;
+    const tables: React.JSX.Element[] = [];
     
-    return renderFormattedText(text, highlightFn);
+    processedText = processedText.replace(tableRegex, (tableMatch) => {
+        tables.push(renderTable(tableMatch, highlightFn));
+        return '%%TABLE_PLACEHOLDER%%';
+    });
+
+    const textParts = processedText.split('%%TABLE_PLACEHOLDER%%');
+
+    return (
+        <>
+            {textParts.map((part, index) => (
+                <React.Fragment key={index}>
+                    {renderFormattedText(part, highlightFn)}
+                    {tables[index]}
+                </React.Fragment>
+            ))}
+        </>
+    );
   }, []);
 
   const renderTable = useCallback((content: string, highlightFn: (text: string) => string) => {
@@ -413,7 +427,7 @@ const ContentDisplay: FC<Omit<OutputDisplayProps, 'isLoading'> & {
   };
 
   const contentToDisplay = getContentToDisplay();
-  const key = `${activeTab}-${contentToDisplay?.slice(0, 100)}`;
+  const key = `${activeTab}-${JSON.stringify(result)}`;
 
   return (
     <AnimatePresence mode="wait">
@@ -478,8 +492,7 @@ export const OutputDisplay: FC<OutputDisplayProps> = ({
   activeTab, 
   targetLanguage,
   onRefresh,
-  className,
-  maxHeight = "600px"
+  className
 }) => {
   const [hasCopied, setHasCopied] = useState(false);
   const [isBookmarked, setIsBookmarked] = useState(false);
@@ -554,7 +567,7 @@ export const OutputDisplay: FC<OutputDisplayProps> = ({
       navigator.clipboard.writeText(content);
       setHasCopied(true);
     }
-  }, [getCopyContent]);
+  }, [result]);
 
   const handleDownload = useCallback(() => {
     const content = getCopyContent();
@@ -575,7 +588,7 @@ export const OutputDisplay: FC<OutputDisplayProps> = ({
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-  }, [getCopyContent, activeTab, targetLanguage]);
+  }, [result, activeTab, targetLanguage]);
 
   const handleShare = useCallback(() => {
     const content = getCopyContent();
@@ -583,9 +596,9 @@ export const OutputDisplay: FC<OutputDisplayProps> = ({
       navigator.share({
         title: `${activeTab} Result`,
         text: content.slice(0, 200) + (content.length > 200 ? '...' : ''),
-      });
+      }).catch((error) => console.log('Error sharing:', error));
     }
-  }, [getCopyContent, activeTab]);
+  }, [result, activeTab]);
 
   const ActionButton: FC<{
     icon: React.ReactNode;
@@ -615,9 +628,9 @@ export const OutputDisplay: FC<OutputDisplayProps> = ({
   );
 
   return (
-    <Card className={`flex flex-col overflow-hidden glassmorphism transition-all duration-300 ${
-      isFullscreen ? 'fixed inset-4 z-50 shadow-2xl' : ''
-    } ${className}`} style={{ maxHeight: isFullscreen ? 'none' : maxHeight }}>
+    <Card className={`flex flex-col glassmorphism transition-all duration-300 ${
+      isFullscreen ? 'fixed inset-4 z-50 shadow-2xl' : 'relative overflow-hidden'
+    } ${className}`} style={{ height: isFullscreen ? 'auto' : undefined }}>
       <CardHeader className="flex flex-row items-center justify-between p-4 border-b border-border/20 bg-background/50 backdrop-blur-sm">
         <div className="flex items-center gap-4">
           <CardTitle className="text-base font-semibold">{getTitle()}</CardTitle>
@@ -657,7 +670,7 @@ export const OutputDisplay: FC<OutputDisplayProps> = ({
               icon={<Share2 className="h-4 w-4" />}
               tooltip="Share"
               onClick={handleShare}
-              disabled={!navigator.share}
+              disabled={typeof navigator.share === 'undefined'}
             />
             
             <ActionButton
@@ -689,7 +702,7 @@ export const OutputDisplay: FC<OutputDisplayProps> = ({
         )}
       </CardHeader>
       
-      <CardContent className="flex-1 overflow-hidden p-0 relative">
+      <CardContent className="flex-1 overflow-auto p-0 relative">
         {isLoading ? (
           <LoadingState />
         ) : (
