@@ -30,12 +30,17 @@ const convertCodePrompt = ai.definePrompt({
   name: 'convertCodePrompt',
   input: {schema: ConvertCodeInputSchema},
   output: {schema: ConvertCodeOutputSchema},
-  prompt: `You are an expert programmer and code converter. Convert the following code snippet from {{sourceLanguage}} to {{targetLanguage}}.
+  prompt: `You are an expert programmer and code converter. Your task is to convert the following code snippet from {{sourceLanguage}} to {{targetLanguage}}.
 
-Provide only the converted code, without any explanations or markdown formatting.
+Follow these rules:
+1.  **Direct Conversion**: Translate the logic and structure as accurately as possible.
+2.  **No Extra Content**: Provide ONLY the raw converted code. Do not include any explanations, markdown formatting (like \`\`\`{{targetLanguage}}\`), or any text other than the code itself.
+3.  **Idiomatic Code**: Ensure the output uses standard conventions and best practices for the target language.
 
-Code:
+Original Code ({{sourceLanguage}}):
+\`\`\`{{sourceLanguage}}
 {{{code}}}
+\`\`\`
 `,
 });
 

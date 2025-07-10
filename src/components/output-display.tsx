@@ -65,12 +65,13 @@ const MarkdownRenderer = ({ content }: { content: string }) => {
         if (index % 3 === 0) { // This is the markdown text
             // Super basic markdown to HTML
             let html = part
+            .replace(/^---$/gm, '<hr class="my-4 border-border/20">')
             .replace(/^### (.*$)/gim, '<h3 class="font-semibold text-lg !mt-4">$1</h3>')
             .replace(/^## (.*$)/gim, '<h2 class="font-semibold text-xl !mt-6">$1</h2>')
             .replace(/^# (.*$)/gim, '<h1 class="font-bold text-2xl !mt-8">$1</h1>')
             .replace(/\*\*(.*)\*\*/g, '<strong>$1</strong>')
             .replace(/\*(.*)\*/g, '<em>$1</em>')
-            .replace(/`([^`]+)`/g, '<code class="text-sm font-mono bg-muted/50 dark:bg-muted/50 text-accent-foreground p-1 rounded-sm">$1</code>')
+            .replace(/`([^`]+)`/g, '<code class="inline-code text-sm font-mono bg-muted/50 dark:bg-muted/30 text-accent-foreground p-1 rounded-sm">$1</code>')
             .replace(/^\s*[-*] (.*)/gm, '<li class="my-1">$1</li>')
             .replace(/(<li>.*<\/li>)/gs, '<ul>$1</ul>')
             .replace(/^\s*\d+\. (.*)/gm, '<li class="my-1">$1</li>')
