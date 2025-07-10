@@ -9,7 +9,7 @@ export default function Home() {
         <CodeCompanion />
       </main>
       <footer className="w-full text-center p-4 text-sm text-muted-foreground border-t border-border/40 mt-auto">
-        &copy; Coding Friend 2025 Designed and developed by{' '}
+        &copy; Coding Friend 2025 | Designed and developed by{' '}
         <a
           href="https://ashishkm.vercel.app"
           target="_blank"
