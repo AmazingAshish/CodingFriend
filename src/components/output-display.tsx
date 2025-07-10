@@ -44,30 +44,16 @@ const InitialState: FC = () => (
   </div>
 );
 
-
 const MarkdownRenderer = ({ content, activeTab }: { content: string; activeTab: ActiveTab }) => {
-  const parseTable = (markdown: string): string => {
-    const tableRegex = /^\|(.+)\|\n\|-+\|([\s\S]+?)(?=\n\n|\n\s*$)/gm;
-    return markdown.replace(tableRegex, (match, headerRow, bodyRows) => {
-      const headers = headerRow.split('|').slice(1, -1).map(h => h.trim());
-      const rows = bodyRows.trim().split('\n').map(r => r.split('|').slice(1, -1).map(c => c.trim()));
-
-      const headerHtml = `<thead><tr class="border-b border-border bg-muted/50">${headers.map(h => `<th class="p-2 text-left font-semibold">${h.replace(/`/g, '')}</th>`).join('')}</tr></thead>`;
-      const bodyHtml = `<tbody>${rows.map(row => `<tr class="border-b border-border">${row.map(cell => `<td class="p-2">${cell.replace(/`/g, '<code class="inline-code text-sm font-mono bg-muted/50 dark:bg-muted/30 text-accent-foreground p-1 rounded-sm">') .replace(/`/g, '</code>')}</td>`).join('')}</tr>`).join('')}</tbody>`;
-
-      return `<div class="not-prose my-4 overflow-x-auto rounded-lg border"><table class="w-full text-sm">${headerHtml}${bodyHtml}</table></div>`;
-    });
-  };
-
-  const renderGenericContent = (sectionContent: string) => {
+  const parseMarkdown = (markdown: string): (React.JSX.Element | null)[] => {
     const codeBlockRegex = /```(\w+)?\s*([\s\S]*?)```/g;
-    const parts = sectionContent.split(codeBlockRegex);
+    const parts = markdown.split(codeBlockRegex);
 
     return parts.map((part, index) => {
-      if (index % 3 === 2) { // This is the code content
+      if (index % 3 === 2) { // Code block content
         const language = parts[index - 1] || 'bash';
         return (
-          <div key={index} className="not-prose my-4 rounded-md bg-card/70 border overflow-hidden">
+          <div key={`code-${index}`} className="not-prose my-4 rounded-md bg-card/70 border overflow-hidden">
             <SyntaxHighlighter
               language={language}
               style={oneDark}
@@ -80,25 +66,65 @@ const MarkdownRenderer = ({ content, activeTab }: { content: string; activeTab: 
           </div>
         );
       }
-      if (index % 3 === 0) { // This is the markdown text
-        let textWithTables = parseTable(part);
+      if (index % 3 === 0) { // Text content
+        const tableRegex = /^\|(.+)\|\r?\n\|( *[-:]+ *\|)+[\s\S]*?(?=\r?\n\r?\n|$)/gm;
+        
+        const textParts = part.split(tableRegex);
 
-        let html = textWithTables
-          .replace(/^### (.*$)/gim, '<h3 class="font-semibold text-lg !mt-4">$1</h3>')
-          .replace(/^## (.*$)/gim, '<h2 class="font-semibold text-xl !mt-6">$1</h2>')
-          .replace(/^# (.*$)/gim, '<h1 class="font-bold text-2xl !mt-8">$1</h1>')
-          .replace(/\*\*(.*)\*\*/g, '<strong>$1</strong>')
-          .replace(/\*(.*)\*/g, '<em>$1</em>')
-          .replace(/`([^`]+)`/g, '<code class="inline-code text-sm font-mono bg-muted/50 dark:bg-muted/30 text-accent-foreground p-1 rounded-sm">$1</code>')
-          .replace(/^\s*[-*] (.*)/gm, '<li class="my-1 ml-4">$1</li>')
-          .replace(/(<li>.*<\/li>)/gs, '<ul>$1</ul>')
-          .replace(/^\s*\d+\. (.*)/gm, '<li class="my-1 ml-4">$1</li>')
-          .replace(/(<li.*<\/li>)/gs, (match, p1) => {
-            if (match.includes('<ol>') || match.includes('<ul>')) return match;
-            return /<li class="my-1 ml-4">\d+\./.test(match) ? `<ol class="list-decimal list-inside">${p1}</ol>` : `<ul class="list-disc list-inside">${p1}</ul>`;
-          });
+        return (
+          <div key={`text-${index}`}>
+            {textParts.map((textPart, textIndex) => {
+              if (textIndex % 3 === 1) { // Matched table header
+                const tableContent = textPart + textParts[textIndex+1] + (part.match(tableRegex)?.[Math.floor(textIndex / 3)] ?? '').split('\n').slice(2).join('\n');
+                
+                const lines = tableContent.trim().split('\n');
+                const headerCells = lines[0].split('|').slice(1, -1).map(h => h.trim());
+                const bodyRows = lines.slice(2).map(row => row.split('|').slice(1, -1).map(c => c.trim()));
 
-        return <div key={index} dangerouslySetInnerHTML={{ __html: html }} />;
+                return (
+                  <div key={`table-${textIndex}`} className="not-prose my-4 overflow-x-auto rounded-lg border">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b border-border bg-muted/50">
+                          {headerCells.map((header, i) => <th key={i} className="p-2 text-left font-semibold" dangerouslySetInnerHTML={{ __html: header.replace(/`/g, '') }}/>)}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {bodyRows.map((row, i) => (
+                          <tr key={i} className="border-b border-border last:border-b-0">
+                            {row.map((cell, j) => (
+                              <td key={j} className="p-2" dangerouslySetInnerHTML={{ __html: cell.replace(/`([^`]+)`/g, '<code class="inline-code text-sm font-mono bg-muted/50 dark:bg-muted/30 text-accent-foreground p-1 rounded-sm">$1</code>') }} />
+                            ))}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                );
+              }
+
+              if (textIndex % 3 === 0) { // Regular text
+                let html = textPart
+                  .replace(/^### (.*$)/gim, '<h3 class="font-semibold text-lg !mt-4">$1</h3>')
+                  .replace(/^## (.*$)/gim, '<h2 class="font-semibold text-xl !mt-6">$1</h2>')
+                  .replace(/^# (.*$)/gim, '<h1 class="font-bold text-2xl !mt-8">$1</h1>')
+                  .replace(/\*\*(.*)\*\*/g, '<strong>$1</strong>')
+                  .replace(/\*(.*)\*/g, '<em>$1</em>')
+                  .replace(/`([^`]+)`/g, '<code class="inline-code text-sm font-mono bg-muted/50 dark:bg-muted/30 text-accent-foreground p-1 rounded-sm">$1</code>')
+                  .replace(/^\s*[-*] (.*)/gm, '<li>$1</li>')
+                  .replace(/(<\/li>\s*<li>)/g, '</li><li>') // clean up list items
+                  .replace(/((<li>.*<\/li>)+)/gs, '<ul>$1</ul>') // wrap with ul
+                  .replace(/^\s*\d+\. (.*)/gm, '<li>$1</li>') // numbered lists
+                  .replace(/(<\/li>\s*<li>)/g, '</li><li>') // clean up list items
+                  .replace(/((<li>.*<\/li>)+)/gs, (match) => { // wrap with ol or ul
+                      return /^\s*\d+\./.test(match) ? `<ol class="list-decimal list-inside">${match}</ol>` : `<ul class="list-disc list-inside">${match}</ul>`;
+                  });
+                return <div key={textIndex} dangerouslySetInnerHTML={{ __html: html }} />;
+              }
+              return null;
+            })}
+          </div>
+        )
       }
       return null;
     });
@@ -121,7 +147,7 @@ const MarkdownRenderer = ({ content, activeTab }: { content: string; activeTab: 
               <AccordionItem value={`item-${index}`} key={index}>
                 <AccordionTrigger>{title}</AccordionTrigger>
                 <AccordionContent>
-                  {renderGenericContent(solutionContent)}
+                  {parseMarkdown(solutionContent)}
                 </AccordionContent>
               </AccordionItem>
             );
@@ -129,7 +155,7 @@ const MarkdownRenderer = ({ content, activeTab }: { content: string; activeTab: 
         </Accordion>
         {comparisonTable && (
           <div className="mt-6">
-            {renderGenericContent(comparisonTable)}
+            {parseMarkdown(comparisonTable)}
           </div>
         )}
       </>
@@ -138,7 +164,7 @@ const MarkdownRenderer = ({ content, activeTab }: { content: string; activeTab: 
 
   return (
     <div className="prose prose-sm dark:prose-invert max-w-none p-6 text-foreground/80 whitespace-pre-wrap leading-relaxed">
-      {activeTab === 'solutions' ? renderSolutions() : renderGenericContent(content)}
+      {activeTab === 'solutions' ? renderSolutions() : parseMarkdown(content)}
     </div>
   );
 };
