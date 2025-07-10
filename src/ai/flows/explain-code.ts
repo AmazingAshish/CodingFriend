@@ -31,7 +31,7 @@ const prompt = ai.definePrompt({
   prompt: `You are an expert coding tutor. Explain the following code snippet in simple terms, as if you were explaining it to a student:
 
 \`\`\`
-{{code}}
+{{{code}}}
 \`\`\`
 `,
 });
