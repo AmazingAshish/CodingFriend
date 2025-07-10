@@ -17,8 +17,7 @@ const AnalyzeCodeInputSchema = z.object({
 export type AnalyzeCodeInput = z.infer<typeof AnalyzeCodeInputSchema>;
 
 const AnalyzeCodeOutputSchema = z.object({
-  complexityAnalysis: z.string().describe('An analysis of the code complexity.'),
-  vulnerabilityAnalysis: z.string().describe('An analysis of potential vulnerabilities in the code.'),
+  analysis: z.string().describe('A detailed analysis of the code in Markdown format.'),
 });
 export type AnalyzeCodeOutput = z.infer<typeof AnalyzeCodeOutputSchema>;
 
@@ -33,12 +32,25 @@ const analyzeCodePrompt = ai.definePrompt({
   prompt: `You are an expert code analyst. Analyze the following code snippet for complexity and potential vulnerabilities.
 
 Language: {{language}}
-Code: {{{code}}}
+Code:
+\`\`\`{{language}}
+{{{code}}}
+\`\`\`
 
-Provide a detailed complexity analysis and a vulnerability assessment.
-Complexity Analysis:
+Provide the analysis in a structured Markdown format. Use headings, bullet points, and code blocks for clarity.
 
-Vulnerability Analysis:
+Structure your response like this:
+### Complexity Analysis
+- **Time Complexity**: Analyze the time complexity (Big O notation) and explain why.
+- **Space Complexity**: Analyze the space complexity (Big O notation) and explain why.
+
+### Vulnerability Analysis
+- Identify potential security vulnerabilities (e.g., buffer overflows, injection attacks, etc.).
+- Suggest specific fixes or best practices to mitigate the risks.
+
+### Refactoring Suggestions
+- Provide suggestions for improving code quality, readability, and performance.
+- Include small code snippets to illustrate your suggestions where applicable.
 `,
 });
 
@@ -50,6 +62,6 @@ const analyzeCodeFlow = ai.defineFlow(
   },
   async input => {
     const {output} = await analyzeCodePrompt(input);
-    return output!;
+    return { analysis: output!.analysis };
   }
 );

@@ -1,11 +1,13 @@
 "use client";
 
-import { type FC } from 'react';
+import { type FC, useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { AnimatePresence, motion } from 'framer-motion';
+import { Button } from './ui/button';
+import { Check, Clipboard } from 'lucide-react';
 
 import type { ActiveTab, Result } from './code-companion';
 
@@ -36,10 +38,64 @@ const InitialState: FC = () => (
   </div>
 );
 
+
+const MarkdownRenderer = ({ content }: { content: string }) => {
+  const codeBlockRegex = /```(\w+)?\s*([\s\S]*?)```/g;
+  const parts = content.split(codeBlockRegex);
+
+  return (
+    <div className="prose prose-sm dark:prose-invert max-w-none p-6 text-foreground/80 whitespace-pre-wrap leading-relaxed">
+      {parts.map((part, index) => {
+        if (index % 3 === 2) { // This is the code content
+          const language = parts[index-1] || 'bash';
+          return (
+            <div key={index} className="not-prose my-4 rounded-md bg-card/70 border">
+              <SyntaxHighlighter
+                language={language}
+                style={oneDark}
+                customStyle={{ backgroundColor: 'transparent', padding: '1rem', margin: 0 }}
+                showLineNumbers
+              >
+                {part.trim()}
+              </SyntaxHighlighter>
+            </div>
+          );
+        }
+        if (index % 3 === 0) { // This is the markdown text
+            // Super basic markdown to HTML
+            let html = part
+            .replace(/^### (.*$)/gim, '<h3 class="font-semibold text-lg !mt-4">$1</h3>')
+            .replace(/^## (.*$)/gim, '<h2 class="font-semibold text-xl !mt-6">$1</h2>')
+            .replace(/^# (.*$)/gim, '<h1 class="font-bold text-2xl !mt-8">$1</h1>')
+            .replace(/\*\*(.*)\*\*/g, '<strong>$1</strong>')
+            .replace(/\*(.*)\*/g, '<em>$1</em>')
+            .replace(/`([^`]+)`/g, '<code class="text-sm font-mono bg-muted/70 text-accent-foreground p-1 rounded-sm">$1</code>')
+            .replace(/^\s*[-*] (.*)/gm, '<li class="my-1">$1</li>')
+            .replace(/(<li>.*<\/li>)/gs, '<ul>$1</ul>')
+            .replace(/^\s*\d+\. (.*)/gm, '<li class="my-1">$1</li>')
+            .replace(/(<li.*<\/li>)/gs, (match, p1) => {
+                // prevent wrapping lists in lists
+                if (match.includes('<ol>') || match.includes('<ul>')) return match;
+                return /^\s*\d+\./.test(content) ? `<ol>${p1}</ol>` : `<ul>${p1}</ul>`;
+            });
+          return <div key={index} dangerouslySetInnerHTML={{ __html: html }} />;
+        }
+        return null; // This is the language part, which we've already used
+      })}
+    </div>
+  );
+};
+
+
 const ContentDisplay: FC<Omit<OutputDisplayProps, 'isLoading'>> = ({ result, activeTab, targetLanguage }) => {
   if (!result) return <InitialState />;
 
-  const key = result ? ('convertedCode' in result ? result.convertedCode : 'explanation' in result ? result.explanation : result.complexityAnalysis) : 'initial';
+  let contentToDisplay = "";
+  if ('convertedCode' in result) contentToDisplay = result.convertedCode;
+  else if ('explanation' in result) contentToDisplay = result.explanation;
+  else if ('analysis' in result) contentToDisplay = result.analysis;
+  
+  const key = contentToDisplay;
 
   return (
     <AnimatePresence mode="wait">
@@ -49,7 +105,7 @@ const ContentDisplay: FC<Omit<OutputDisplayProps, 'isLoading'>> = ({ result, act
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         transition={{ duration: 0.3 }}
-        className="h-full"
+        className="h-full relative"
       >
         {activeTab === 'convert' && 'convertedCode' in result && result.convertedCode && (
           <div className="h-full">
@@ -61,6 +117,7 @@ const ContentDisplay: FC<Omit<OutputDisplayProps, 'isLoading'>> = ({ result, act
                 height: '100%',
                 backgroundColor: 'transparent',
                 padding: '1rem',
+                fontSize: '14px',
               }}
               wrapLongLines={true}
               showLineNumbers={true}
@@ -73,22 +130,11 @@ const ContentDisplay: FC<Omit<OutputDisplayProps, 'isLoading'>> = ({ result, act
         )}
 
         {activeTab === 'explain' && 'explanation' in result && result.explanation && (
-          <div className="prose dark:prose-invert max-w-none p-6 text-sm text-foreground/80 whitespace-pre-wrap">
-            {result.explanation}
-          </div>
+          <MarkdownRenderer content={result.explanation} />
         )}
 
-        {activeTab === 'analyze' && 'complexityAnalysis' in result && (
-          <div className="prose dark:prose-invert max-w-none p-6 space-y-6">
-            <div>
-              <h3 className="font-semibold text-lg !mt-0">Complexity Analysis</h3>
-              <p className="text-sm text-foreground/80 whitespace-pre-wrap">{result.complexityAnalysis}</p>
-            </div>
-            <div>
-              <h3 className="font-semibold text-lg">Vulnerability Analysis</h3>
-              <p className="text-sm text-foreground/80 whitespace-pre-wrap">{result.vulnerabilityAnalysis}</p>
-            </div>
-          </div>
+        {activeTab === 'analyze' && 'analysis' in result && result.analysis && (
+          <MarkdownRenderer content={result.analysis} />
         )}
       </motion.div>
     </AnimatePresence>
@@ -96,6 +142,15 @@ const ContentDisplay: FC<Omit<OutputDisplayProps, 'isLoading'>> = ({ result, act
 };
 
 export const OutputDisplay: FC<OutputDisplayProps> = ({ isLoading, result, activeTab, targetLanguage }) => {
+  const [hasCopied, setHasCopied] = useState(false);
+
+  useEffect(() => {
+    if (hasCopied) {
+      const timer = setTimeout(() => setHasCopied(false), 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [hasCopied]);
+
   const getTitle = () => {
     if (!result && !isLoading) return "Output";
     if (isLoading) return "Processing...";
@@ -107,10 +162,31 @@ export const OutputDisplay: FC<OutputDisplayProps> = ({ isLoading, result, activ
     }
   }
 
+  const getCopyContent = () => {
+    if (!result) return "";
+    if ('convertedCode' in result) return result.convertedCode;
+    if ('explanation' in result) return result.explanation;
+    if ('analysis' in result) return result.analysis;
+    return "";
+  }
+  
+  const handleCopy = () => {
+    const content = getCopyContent();
+    if (content) {
+      navigator.clipboard.writeText(content);
+      setHasCopied(true);
+    }
+  }
+
   return (
     <Card className="h-full min-h-[400px] lg:h-[600px] flex flex-col overflow-hidden glassmorphism">
-       <CardHeader>
+       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>{getTitle()}</CardTitle>
+        {result && !isLoading && (
+            <Button variant="ghost" size="icon" onClick={handleCopy} className="h-8 w-8 text-muted-foreground">
+                {hasCopied ? <Check className="h-4 w-4 text-green-500" /> : <Clipboard className="h-4 w-4" />}
+            </Button>
+        )}
       </CardHeader>
       <CardContent className="flex-1 overflow-y-auto p-0">
         {isLoading ? <LoadingState /> : <ContentDisplay result={result} activeTab={activeTab} targetLanguage={targetLanguage} />}

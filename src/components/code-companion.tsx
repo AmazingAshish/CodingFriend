@@ -95,7 +95,7 @@ export const CodeCompanion = () => {
     try {
       let res: Result;
       if (activeTab === "explain") {
-        res = await explainCode({ code, isEli5 });
+        res = await explainCode({ code, isEli5, language: sourceLanguage });
       } else if (activeTab === 'analyze') {
         res = await analyzeCode({ code, language: sourceLanguage });
       } else {
