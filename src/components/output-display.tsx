@@ -44,12 +44,9 @@ const MarkdownRenderer = ({ content, activeTab }: { content: string; activeTab: 
     const codeBlockRegex = /```(\w+)?\s*([\s\S]*?)```/g;
     const parts = sectionContent.split(codeBlockRegex);
 
-    const colors = ['border-blue-400', 'border-purple-400', 'border-teal-400'];
-    const hrColor = colors[sectionIndex % colors.length];
-
     return (
       <div key={`section-${sectionIndex}`}>
-         {sectionIndex > 0 && <hr className={`my-6 border-t-2 ${hrColor}`} />}
+         {sectionIndex > 0 && activeTab === 'solutions' && <hr className={`my-6 border-t-2 border-primary/20`} />}
         {parts.map((part, index) => {
           if (index % 3 === 2) { // This is the code content
             const language = parts[index-1] || 'bash';
@@ -72,6 +69,7 @@ const MarkdownRenderer = ({ content, activeTab }: { content: string; activeTab: 
               .replace(/^### (.*$)/gim, '<h3 class="font-semibold text-lg !mt-4">$1</h3>')
               .replace(/^## (.*$)/gim, '<h2 class="font-semibold text-xl !mt-6">$1</h2>')
               .replace(/^# (.*$)/gim, '<h1 class="font-bold text-2xl !mt-8">$1</h1>')
+              .replace(/---/g, '<hr class="my-6 border-border/20" />')
               .replace(/\*\*(.*)\*\*/g, '<strong>$1</strong>')
               .replace(/\*(.*)\*/g, '<em>$1</em>')
               .replace(/`([^`]+)`/g, '<code class="inline-code text-sm font-mono bg-muted/50 dark:bg-muted/30 text-accent-foreground p-1 rounded-sm">$1</code>')
@@ -89,9 +87,9 @@ const MarkdownRenderer = ({ content, activeTab }: { content: string; activeTab: 
       </div>
     )
   }
-
+  
   const sections = activeTab === 'solutions' ? content.split(/\n---\n/) : [content];
-
+  
   return (
     <div className="prose prose-sm dark:prose-invert max-w-none p-6 text-foreground/80 whitespace-pre-wrap leading-relaxed">
       {sections.map(renderSection)}

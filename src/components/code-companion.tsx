@@ -27,6 +27,10 @@ import { languages } from "./language-select";
 export type Result = ExplainCodeOutput | AnalyzeCodeOutput | ConvertCodeOutput | null;
 export type ActiveTab = "explain" | "solutions" | "convert";
 
+type ResultsState = {
+  [key in ActiveTab]: Result;
+};
+
 // Debounce hook
 const useDebounce = (value: string, delay: number) => {
   const [debouncedValue, setDebouncedValue] = useState(value);
@@ -48,7 +52,11 @@ export const CodeCompanion = () => {
   const [targetLanguage, setTargetLanguage] = useState<string>("python");
   const [isEli5, setIsEli5] = useState<boolean>(false);
 
-  const [result, setResult] = useState<Result>(null);
+  const [results, setResults] = useState<ResultsState>({
+    explain: null,
+    solutions: null,
+    convert: null,
+  });
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isDetecting, setIsDetecting] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<ActiveTab>("explain");
@@ -90,24 +98,44 @@ export const CodeCompanion = () => {
     }
 
     setIsLoading(true);
-    setResult(null);
+    // Clear the result for the current tab only
+    setResults(prev => ({ ...prev, [activeTab]: null }));
 
     try {
       let res: Result;
-      if (activeTab === "explain") {
+      const currentTab = activeTab;
+
+      if (currentTab === "explain") {
         res = await explainCode({ code, isEli5, language: sourceLanguage });
-      } else if (activeTab === 'solutions') {
+      } else if (currentTab === 'solutions') {
         res = await analyzeCode({ code, language: sourceLanguage });
       } else {
         res = await convertCode({ code, sourceLanguage, targetLanguage });
       }
-      setResult(res);
-    } catch (error) {
+      
+      // Only set the result if the tab hasn't changed since the request started
+      setActiveTab(prevTab => {
+        if (prevTab === currentTab) {
+          setResults(prevResults => ({ ...prevResults, [currentTab]: res }));
+        }
+        return prevTab;
+      });
+
+    } catch (error: any) {
       console.error(error);
+      const errorMessage = error?.message || "Failed to process the code. Please try again.";
+      let description = "An unknown error occurred.";
+      
+      if (typeof errorMessage === 'string' && errorMessage.includes('503')) {
+        description = "The AI model is currently overloaded. Please try again in a moment.";
+      } else {
+        description = "Failed to process the code. Please try again.";
+      }
+
       toast({
         variant: "destructive",
         title: "An error occurred",
-        description: "Failed to process the code. Please try again.",
+        description,
       });
     } finally {
       setIsLoading(false);
@@ -169,7 +197,7 @@ export const CodeCompanion = () => {
           />
           <OutputDisplay
             isLoading={isLoading}
-            result={result}
+            result={results[activeTab]}
             activeTab={activeTab}
             targetLanguage={targetLanguage}
           />
