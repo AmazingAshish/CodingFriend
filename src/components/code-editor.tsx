@@ -68,7 +68,7 @@ export const CodeEditor: FC<CodeEditorProps> = ({ code, setCode, language }) => 
 
 
   return (
-    <Card className="flex flex-col glassmorphism overflow-hidden">
+    <Card className="flex flex-col glassmorphism overflow-hidden min-h-[400px]">
       <CardHeader className="flex flex-row items-center justify-between p-4 border-b border-border/20">
         <CardTitle className="text-sm font-mono text-muted-foreground">{`${language}${getFileExtension(language)}`}</CardTitle>
         <Button variant="ghost" size="icon" onClick={handleCopy} className="h-8 w-8 text-muted-foreground" aria-label="Copy code">
