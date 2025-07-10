@@ -17,7 +17,7 @@ const AnalyzeCodeInputSchema = z.object({
 export type AnalyzeCodeInput = z.infer<typeof AnalyzeCodeInputSchema>;
 
 const AnalyzeCodeOutputSchema = z.object({
-  analysis: z.string().describe('A detailed analysis of the code in Markdown format, providing multiple solutions.'),
+  analysis: z.string().describe('A detailed analysis of the code in Markdown format, providing multiple solutions and a comparison table.'),
 });
 export type AnalyzeCodeOutput = z.infer<typeof AnalyzeCodeOutputSchema>;
 
@@ -37,7 +37,7 @@ Code:
 {{{code}}}
 \`\`\`
 
-For the given code, provide at least two alternative solutions. For each solution, provide the following structure. Separate each complete solution with a \`---\` horizontal rule.
+First, provide at least two alternative solutions. For each solution, provide the following structure. Separate each complete solution with a \`---\` horizontal rule.
 
 ### Solution: [Approach Name, e.g., Brute-Force]
 - **Algorithm**: Explain the step-by-step logic of the solution using a numbered list.
@@ -55,7 +55,19 @@ For the given code, provide at least two alternative solutions. For each solutio
   - **Time Complexity**: State the Big O time complexity and explain why it's more efficient.
   - **Space Complexity**: State the Big O space complexity and explain why.
 
-If applicable, provide a third, even more optimized or different approach, following the same structure and separating it with a \`---\`. Ensure the entire response is a single, clean markdown string.
+---
+
+After providing the solutions, create a "Comparison Summary" section. This section must contain a Markdown table that compares all the solutions you provided. The table should have the columns: "Approach", "Time Complexity", and "Space Complexity".
+
+Example of the final table structure:
+
+### Comparison Summary
+| Approach                | Time Complexity | Space Complexity |
+| ----------------------- | --------------- | ---------------- |
+| Brute-Force             | \`O(n^2)\`      | \`O(1)\`         |
+| Optimal (Hash Map)      | \`O(n)\`        | \`O(n)\`         |
+
+Ensure the entire response is a single, clean markdown string.
 `,
 });
 
