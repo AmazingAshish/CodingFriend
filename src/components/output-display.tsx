@@ -1,6 +1,6 @@
 "use client";
 
-import { type FC, useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import React, { type FC, useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
@@ -405,7 +405,7 @@ const EnhancedMarkdownRenderer = ({
   );
 };
 
-const ContentDisplay: FC<Omit<OutputDisplayProps, 'isLoading'> & { 
+const ContentDisplay: FC<Omit<OutputDisplayProps, 'isLoading' | 'className'> & { 
   searchState: SearchState;
   isDarkMode: boolean;
   isFullscreen: boolean;
@@ -628,7 +628,7 @@ export const OutputDisplay: FC<OutputDisplayProps> = ({
   );
 
   return (
-    <Card className={`flex flex-col glassmorphism transition-all duration-300 ${
+    <Card className={`flex flex-col glassmorphism transition-all duration-300 min-h-[400px] ${
       isFullscreen ? 'fixed inset-4 z-50 shadow-2xl' : 'relative overflow-hidden'
     } ${className}`} style={{ height: isFullscreen ? 'auto' : undefined }}>
       <CardHeader className="flex flex-row items-center justify-between p-4 border-b border-border/20 bg-background/50 backdrop-blur-sm">
