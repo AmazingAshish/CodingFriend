@@ -134,7 +134,7 @@ const ContentDisplay: FC<Omit<OutputDisplayProps, 'isLoading'>> = ({ result, act
           <MarkdownRenderer content={result.explanation} />
         )}
 
-        {activeTab === 'analyze' && 'analysis' in result && result.analysis && (
+        {activeTab === 'solutions' && 'analysis' in result && result.analysis && (
           <MarkdownRenderer content={result.analysis} />
         )}
       </motion.div>
@@ -157,7 +157,7 @@ export const OutputDisplay: FC<OutputDisplayProps> = ({ isLoading, result, activ
     if (isLoading) return "Processing...";
     switch(activeTab) {
       case 'explain': return "Explanation";
-      case 'analyze': return "Analysis";
+      case 'solutions': return "Solutions";
       case 'convert': return `Converted to ${targetLanguage?.charAt(0).toUpperCase()}${targetLanguage?.slice(1)}`;
       default: return "Output";
     }

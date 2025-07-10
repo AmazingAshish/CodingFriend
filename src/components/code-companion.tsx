@@ -25,7 +25,7 @@ import { OutputDisplay } from "./output-display";
 import { languages } from "./language-select";
 
 export type Result = ExplainCodeOutput | AnalyzeCodeOutput | ConvertCodeOutput | null;
-export type ActiveTab = "explain" | "analyze" | "convert";
+export type ActiveTab = "explain" | "solutions" | "convert";
 
 // Debounce hook
 const useDebounce = (value: string, delay: number) => {
@@ -96,7 +96,7 @@ export const CodeCompanion = () => {
       let res: Result;
       if (activeTab === "explain") {
         res = await explainCode({ code, isEli5, language: sourceLanguage });
-      } else if (activeTab === 'analyze') {
+      } else if (activeTab === 'solutions') {
         res = await analyzeCode({ code, language: sourceLanguage });
       } else {
         res = await convertCode({ code, sourceLanguage, targetLanguage });
@@ -122,7 +122,7 @@ export const CodeCompanion = () => {
               <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as ActiveTab)} className="w-full sm:w-auto">
                 <TabsList className="grid w-full grid-cols-3 sm:w-auto bg-primary/10">
                   <TabsTrigger value="explain">Explain</TabsTrigger>
-                  <TabsTrigger value="analyze">Analyze</TabsTrigger>
+                  <TabsTrigger value="solutions">Solutions</TabsTrigger>
                   <TabsTrigger value="convert">Convert</TabsTrigger>
                 </TabsList>
               </Tabs>
