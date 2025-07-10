@@ -679,8 +679,77 @@ function applyAdditionalHeuristics(code: string, scores: Record<string, number>)
   }
 }
 
+// Enhanced usage examples
+function demonstrateLanguageDetection(): void {
+  const examples = [
+    {
+      name: "Python with f-strings",
+      code: `
+def greet(name, age):
+    return f"Hello {name}, you are {age} years old!"
+
+if __name__ == "__main__":
+    print(greet("Alice", 30))
+`
+    },
+    {
+      name: "Modern JavaScript",
+      code: `
+const fetchUserData = async (userId) => {
+    try {
+        const response = await fetch(\`/api/users/\${userId}\`);
+        return await response.json();
+    } catch (error) {
+        console.error('Error fetching user:', error);
+    }
+};
+`
+    },
+    {
+      name: "TypeScript with interfaces",
+      code: `
+interface User {
+    id: number;
+    name: string;
+    email?: string;
+}
+
+function createUser(userData: Partial<User>): User {
+    return {
+        id: Math.random(),
+        name: 'Anonymous',
+        ...userData
+    };
+}
+`
+    },
+    {
+      name: "Rust with pattern matching",
+      code: `
+fn main() {
+    let numbers = vec![1, 2, 3, 4, 5];
+    
+    let result: Result<i32, &str> = Ok(42);
+    
+    match result {
+        Ok(value) => println!("Success: {}", value),
+        Err(error) => println!("Error: {}", error),
+    }
+}
+`
+    }
+  ];
+  
+  examples.forEach(example => {
+    const result = detectLanguage(example.code);
+    console.log(`${example.name}:`, result);
+  });
+}
+
 // Export for use
-export { detectLanguage };
+export { detectLanguage, demonstrateLanguageDetection };
 export type { LanguageDetectionResult, LanguagePattern };
+
 ```
 - an error is occurring in the file `src/lib/language-detector.ts`. The error message is as follows: `Type error: Cannot find name 'LanguageDetectionResult'.` and `Type error: Cannot find name 'LanguagePattern'.` Please address this issue.
+```
