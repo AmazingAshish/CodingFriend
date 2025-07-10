@@ -70,7 +70,7 @@ const MarkdownRenderer = ({ content }: { content: string }) => {
             .replace(/^# (.*$)/gim, '<h1 class="font-bold text-2xl !mt-8">$1</h1>')
             .replace(/\*\*(.*)\*\*/g, '<strong>$1</strong>')
             .replace(/\*(.*)\*/g, '<em>$1</em>')
-            .replace(/`([^`]+)`/g, '<code class="text-sm font-mono bg-muted/70 text-accent-foreground p-1 rounded-sm">$1</code>')
+            .replace(/`([^`]+)`/g, '<code class="text-sm font-mono bg-muted/50 dark:bg-muted/30 text-accent-foreground p-1 rounded-sm">$1</code>')
             .replace(/^\s*[-*] (.*)/gm, '<li class="my-1">$1</li>')
             .replace(/(<li>.*<\/li>)/gs, '<ul>$1</ul>')
             .replace(/^\s*\d+\. (.*)/gm, '<li class="my-1">$1</li>')
