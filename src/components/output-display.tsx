@@ -189,7 +189,7 @@ export const OutputDisplay: FC<OutputDisplayProps> = ({ isLoading, result, activ
   }
 
   return (
-    <Card className="h-full flex flex-col overflow-hidden glassmorphism">
+    <Card className="flex flex-col overflow-hidden glassmorphism min-h-[400px]">
        <CardHeader className="flex flex-row items-center justify-between p-4 border-b border-border/20">
         <CardTitle className="text-base">{getTitle()}</CardTitle>
         {result && !isLoading && (
