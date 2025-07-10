@@ -1,8 +1,8 @@
 'use server';
 /**
- * @fileOverview Provides code analysis functionalities including complexity and vulnerability assessments.
+ * @fileOverview Provides code analysis functionalities including generating multiple solutions.
  *
- * - analyzeCode - Analyzes code for complexity and vulnerabilities.
+ * - analyzeCode - Generates multiple algorithmic solutions for a given code problem.
  * - AnalyzeCodeInput - The input type for the analyzeCode function.
  * - AnalyzeCodeOutput - The return type for the analyzeCode function.
  */
@@ -17,7 +17,7 @@ const AnalyzeCodeInputSchema = z.object({
 export type AnalyzeCodeInput = z.infer<typeof AnalyzeCodeInputSchema>;
 
 const AnalyzeCodeOutputSchema = z.object({
-  analysis: z.string().describe('A detailed analysis of the code in Markdown format.'),
+  analysis: z.string().describe('A detailed analysis of the code in Markdown format, providing multiple solutions.'),
 });
 export type AnalyzeCodeOutput = z.infer<typeof AnalyzeCodeOutputSchema>;
 
@@ -29,7 +29,9 @@ const analyzeCodePrompt = ai.definePrompt({
   name: 'analyzeCodePrompt',
   input: {schema: AnalyzeCodeInputSchema},
   output: {schema: AnalyzeCodeOutputSchema},
-  prompt: `You are an expert code analyst. Analyze the following code snippet for complexity and potential vulnerabilities.
+  prompt: `You are an expert programmer and algorithm designer. Your task is to analyze the following code snippet and provide multiple alternative solutions.
+
+For the given code, provide at least two alternative solutions: a brute-force approach and a more optimal solution.
 
 Language: {{language}}
 Code:
@@ -37,20 +39,23 @@ Code:
 {{{code}}}
 \`\`\`
 
-Provide the analysis in a structured Markdown format. Use headings, bullet points, and code blocks for clarity.
+For each solution, provide the following in a clear, structured Markdown format:
 
-Structure your response like this:
-### Complexity Analysis
-- **Time Complexity**: Analyze the time complexity (Big O notation) and explain why.
-- **Space Complexity**: Analyze the space complexity (Big O notation) and explain why.
+### Solution 1: Brute-Force Approach
+- **Algorithm**: Explain the step-by-step logic of the brute-force solution.
+- **Code**: Provide the complete code for this solution in a markdown code block.
+- **Complexity Analysis**:
+  - **Time Complexity**: State the Big O time complexity and explain why.
+  - **Space Complexity**: State the Big O space complexity and explain why.
 
-### Vulnerability Analysis
-- Identify potential security vulnerabilities (e.g., buffer overflows, injection attacks, etc.).
-- Suggest specific fixes or best practices to mitigate the risks.
+### Solution 2: Optimal Solution
+- **Algorithm**: Explain the step-by-step logic of the optimal solution (e.g., using dynamic programming, a greedy approach, two pointers, etc.).
+- **Code**: Provide the complete code for the optimal solution in a markdown code block.
+- **Complexity Analysis**:
+  - **Time Complexity**: State the Big O time complexity and explain why it's more efficient.
+  - **Space Complexity**: State the Big O space complexity and explain why.
 
-### Refactoring Suggestions
-- Provide suggestions for improving code quality, readability, and performance.
-- Include small code snippets to illustrate your suggestions where applicable.
+If applicable, provide a third, even more optimized or different approach. Ensure the entire response is a single markdown string.
 `,
 });
 

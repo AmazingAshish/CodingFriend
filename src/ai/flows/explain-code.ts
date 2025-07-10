@@ -1,8 +1,8 @@
 'use server';
 /**
- * @fileOverview An AI agent that explains code snippets in simple terms.
+ * @fileOverview An AI agent that explains code snippets and analyzes them.
  *
- * - explainCode - A function that handles the code explanation process.
+ * - explainCode - A function that handles the code explanation and analysis process.
  * - ExplainCodeInput - The input type for the explainCode function.
  * - ExplainCodeOutput - The return type for the explainCode function.
  */
@@ -18,7 +18,7 @@ const ExplainCodeInputSchema = z.object({
 export type ExplainCodeInput = z.infer<typeof ExplainCodeInputSchema>;
 
 const ExplainCodeOutputSchema = z.object({
-  explanation: z.string().describe('A simple explanation of the code snippet in Markdown format.'),
+  explanation: z.string().describe('A simple explanation and analysis of the code snippet in Markdown format.'),
 });
 export type ExplainCodeOutput = z.infer<typeof ExplainCodeOutputSchema>;
 
@@ -30,35 +30,46 @@ const prompt = ai.definePrompt({
   name: 'explainCodePrompt',
   input: {schema: ExplainCodeInputSchema},
   output: {schema: ExplainCodeOutputSchema},
-  prompt: `You are an expert coding tutor. Your goal is to explain a code snippet in a clear, structured, and easy-to-understand way using Markdown.
+  prompt: `You are an expert code analyst and tutor. Your goal is to explain and analyze a code snippet in a clear, structured, and easy-to-understand way using Markdown.
 
 {{#if isEli5}}
 Explain the following code snippet in extremely simple terms, as if you were explaining it to a 5-year-old child. Use analogies and avoid technical jargon.
+Code ({{language}}):
+\`\`\`{{language}}
+{{{code}}}
+\`\`\`
+Structure your explanation in Markdown with a "Goal" and a "Simple Story" section.
 {{else}}
-Explain the following code snippet by breaking it down into sections. Use headings, bullet points, and numbered lists for clarity.
-{{/if}}
+Analyze the following code snippet for its purpose, complexity, and potential vulnerabilities.
 
 Code ({{language}}):
 \`\`\`{{language}}
 {{{code}}}
 \`\`\`
 
-Please structure your explanation in Markdown like this:
+Please structure your response in Markdown like this:
 
 ### 🎯 Goal
 A one-sentence summary of what the code is trying to achieve.
 
-### 🧠 Approach
-A brief overview of the method or algorithm used.
-
-### 📝 Step-by-Step Walkthrough
+### 🧠 Logic Walkthrough
+A brief overview of the method or algorithm used, followed by a step-by-step breakdown.
 1.  **Step 1:** Explain the first part of the code.
 2.  **Step 2:** Explain the next part.
 3.  ...continue for all logical steps.
 
+### Complexity Analysis
+- **Time Complexity**: Analyze the time complexity (Big O notation) and explain why.
+- **Space Complexity**: Analyze the space complexity (Big O notation) and explain why.
+
+### Vulnerability & Best Practices
+- Identify potential security vulnerabilities or areas where the code doesn't follow best practices.
+- Suggest specific fixes or improvements.
+
 ### ✨ Key Takeaways
 - Highlight the most important concepts or tricks used in the code.
 - Provide tips for similar problems.
+{{/if}}
 `,
 });
 
