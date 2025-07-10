@@ -9,7 +9,7 @@ export default function Home() {
         <CodeCompanion />
       </main>
       <footer className="w-full text-center p-4 text-sm text-muted-foreground">
-        Designed and developed by Ashish Kumar with ❤️
+        &copy; Coding Friend 2025 Designed and developed by Ashish Kumar with ❤️
       </footer>
     </div>
   );
