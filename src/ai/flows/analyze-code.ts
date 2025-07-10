@@ -40,20 +40,28 @@ Code:
 First, provide at least two alternative solutions. For each solution, provide the following structure. Separate each complete solution with a \`---\` horizontal rule.
 
 ### Solution: [Approach Name, e.g., Brute-Force]
-- **Algorithm**: Explain the step-by-step logic of the solution using a numbered list.
-- **Code**: Provide the complete code for this solution in a markdown code block.
-- **Complexity Analysis**:
-  - **Time Complexity**: State the Big O time complexity (e.g., \`O(n^2)\`) and explain why.
-  - **Space Complexity**: State the Big O space complexity (e.g., \`O(n)\`) and explain why.
+#### Algorithm
+Explain the step-by-step logic of the solution using a numbered list. Do not use a bullet point for the "Algorithm" title itself.
+
+#### Code
+Provide the complete code for this solution in a markdown code block. Do not use a bullet point for the "Code" title itself.
+
+#### Complexity Analysis
+- **Time Complexity**: State the Big O time complexity (e.g., \`O(n^2)\`) and explain why.
+- **Space Complexity**: State the Big O space complexity (e.g., \`O(n)\`) and explain why.
 
 ---
 
 ### Solution: [Approach Name, e.g., Optimal Solution]
-- **Algorithm**: Explain the step-by-step logic of the optimal solution (e.g., using dynamic programming, a greedy approach, two pointers, etc.) using a numbered list.
-- **Code**: Provide the complete code for the optimal solution in a markdown code block.
-- **Complexity Analysis**:
-  - **Time Complexity**: State the Big O time complexity and explain why it's more efficient.
-  - **Space Complexity**: State the Big O space complexity and explain why.
+#### Algorithm
+Explain the step-by-step logic of the optimal solution (e.g., using dynamic programming, a greedy approach, two pointers, etc.) using a numbered list.
+
+#### Code
+Provide the complete code for the optimal solution in a markdown code block.
+
+#### Complexity Analysis
+- **Time Complexity**: State the Big O time complexity and explain why it's more efficient.
+- **Space Complexity**: State the Big O space complexity and explain why.
 
 ---
 

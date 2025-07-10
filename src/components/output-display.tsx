@@ -105,6 +105,7 @@ const MarkdownRenderer = ({ content, activeTab }: { content: string; activeTab: 
 
               if (textIndex % 3 === 0) { // Regular text
                 let html = textPart
+                  .replace(/^#### (.*$)/gim, '<h4 class="font-semibold text-md !mt-4">$1</h4>')
                   .replace(/^### (.*$)/gim, '<h3 class="font-semibold text-lg !mt-4">$1</h3>')
                   .replace(/^## (.*$)/gim, '<h2 class="font-semibold text-xl !mt-6">$1</h2>')
                   .replace(/^# (.*$)/gim, '<h1 class="font-bold text-2xl !mt-8">$1</h1>')
@@ -114,11 +115,12 @@ const MarkdownRenderer = ({ content, activeTab }: { content: string; activeTab: 
                   .replace(/^\s*[-*] (.*)/gm, '<li>$1</li>')
                   .replace(/(<\/li>\s*<li>)/g, '</li><li>') // clean up list items
                   .replace(/((<li>.*<\/li>)+)/gs, '<ul>$1</ul>') // wrap with ul
-                  .replace(/^\s*\d+\. (.*)/gm, '<li>$1</li>') // numbered lists
+                   .replace(/^\s*(\d+\.) (.*)/gm, (match, p1, p2) => `<li>${p2}</li>`) // numbered lists
                   .replace(/(<\/li>\s*<li>)/g, '</li><li>') // clean up list items
-                  .replace(/((<li>.*<\/li>)+)/gs, (match) => { // wrap with ol or ul
-                      return /^\s*\d+\./.test(match) ? `<ol class="list-decimal list-inside">${match}</ol>` : `<ul class="list-disc list-inside">${match}</ul>`;
+                  .replace(/((<li>.*<\/li>)+)/gs, (match, p1) => {
+                      return /^\s*\d+\./.test(match) ? `<ol class="list-decimal list-inside">${p1}</ol>` : `<ul class="list-disc list-inside">${p1}</ul>`;
                   });
+
                 return <div key={textIndex} dangerouslySetInnerHTML={{ __html: html }} />;
               }
               return null;
@@ -130,7 +132,7 @@ const MarkdownRenderer = ({ content, activeTab }: { content: string; activeTab: 
     });
   };
 
-  const renderSolutions = () => {
+  const renderSolutions = (content: string) => {
     const sections = content.split('---');
     const solutions = sections.filter(sec => sec.includes('### Solution:'));
     const comparisonTable = sections.find(sec => sec.includes('### Comparison Summary'));
@@ -164,7 +166,7 @@ const MarkdownRenderer = ({ content, activeTab }: { content: string; activeTab: 
 
   return (
     <div className="prose prose-sm dark:prose-invert max-w-none p-6 text-foreground/80 whitespace-pre-wrap leading-relaxed">
-      {activeTab === 'solutions' ? renderSolutions() : parseMarkdown(content)}
+      {activeTab === 'solutions' ? renderSolutions(content) : parseMarkdown(content)}
     </div>
   );
 };
