@@ -1,6 +1,6 @@
 "use client";
 
-import { Baby, Languages } from "lucide-react";
+import { Baby, Languages, Sparkles } from "lucide-react";
 import type { ActiveTab } from "./code-companion";
 import { LanguageSelect } from "./language-select";
 import { Label } from "./ui/label";
@@ -15,6 +15,7 @@ interface ActionToolbarProps {
   setTargetLanguage: (lang: string) => void;
   isEli5: boolean;
   setIsEli5: (value: boolean) => void;
+  isDetecting: boolean;
 }
 
 export function ActionToolbar({
@@ -25,14 +26,31 @@ export function ActionToolbar({
   setTargetLanguage,
   isEli5,
   setIsEli5,
+  isDetecting,
 }: ActionToolbarProps) {
+
+  const renderSourceLanguageSelect = () => (
+    <div className="flex items-center gap-2">
+       <LanguageSelect
+          value={sourceLanguage}
+          onChange={setSourceLanguage}
+          label="From"
+        />
+        <Tooltip>
+            <TooltipTrigger>
+              <Sparkles className={`h-4 w-4 text-muted-foreground ${isDetecting ? 'animate-spin text-primary' : ''}`} />
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Auto-detecting language</p>
+            </TooltipContent>
+          </Tooltip>
+    </div>
+  );
+
   if (activeTab === "explain") {
     return (
       <div className="flex items-center gap-4 justify-center">
-        <LanguageSelect
-          value={sourceLanguage}
-          onChange={setSourceLanguage}
-        />
+        {renderSourceLanguageSelect()}
         <Tooltip>
           <TooltipTrigger asChild>
             <div className="flex items-center gap-2">
@@ -58,10 +76,7 @@ export function ActionToolbar({
   if (activeTab === "analyze") {
     return (
       <div className="flex items-center gap-2 justify-center">
-        <LanguageSelect
-          value={sourceLanguage}
-          onChange={setSourceLanguage}
-        />
+        {renderSourceLanguageSelect()}
       </div>
     );
   }
@@ -69,11 +84,7 @@ export function ActionToolbar({
   if (activeTab === "convert") {
     return (
       <div className="flex items-center gap-2 justify-center">
-        <LanguageSelect
-          label="From"
-          value={sourceLanguage}
-          onChange={setSourceLanguage}
-        />
+        {renderSourceLanguageSelect()}
         <Languages className="h-5 w-5 text-muted-foreground" />
         <LanguageSelect
           label="To"

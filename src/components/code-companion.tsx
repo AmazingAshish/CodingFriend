@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Wand2 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 
@@ -10,6 +10,7 @@ import type { ExplainCodeOutput } from "@/ai/flows/explain-code";
 import { explainCode } from "@/ai/flows/explain-code";
 import type { ConvertCodeOutput } from "@/ai/flows/convert-code";
 import { convertCode } from "@/ai/flows/convert-code";
+import { detectLanguage } from "@/ai/flows/detect-language";
 
 import { useToast } from "@/hooks/use-toast";
 
@@ -21,9 +22,25 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { ActionToolbar } from "./action-toolbar";
 import { CodeEditor } from "./code-editor";
 import { OutputDisplay } from "./output-display";
+import { languages } from "./language-select";
 
 export type Result = ExplainCodeOutput | AnalyzeCodeOutput | ConvertCodeOutput | null;
 export type ActiveTab = "explain" | "analyze" | "convert";
+
+// Debounce hook
+const useDebounce = (value: string, delay: number) => {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+  return debouncedValue;
+};
+
 
 export const CodeCompanion = () => {
   const [code, setCode] = useState<string>("");
@@ -33,8 +50,34 @@ export const CodeCompanion = () => {
 
   const [result, setResult] = useState<Result>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isDetecting, setIsDetecting] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<ActiveTab>("explain");
   const { toast } = useToast();
+
+  const debouncedCode = useDebounce(code, 500);
+
+  const handleLanguageDetection = useCallback(async (codeToDetect: string) => {
+    if (!codeToDetect.trim()) return;
+
+    setIsDetecting(true);
+    try {
+      const res = await detectLanguage({ code: codeToDetect });
+      if (res.language && languages.some(l => l.value === res.language)) {
+        setSourceLanguage(res.language);
+      }
+    } catch (error) {
+      console.error("Language detection failed:", error);
+    } finally {
+      setIsDetecting(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (debouncedCode) {
+      handleLanguageDetection(debouncedCode);
+    }
+  }, [debouncedCode, handleLanguageDetection]);
+
 
   const handleSubmit = async () => {
     if (!code.trim()) {
@@ -101,6 +144,7 @@ export const CodeCompanion = () => {
                     setTargetLanguage={setTargetLanguage}
                     isEli5={isEli5}
                     setIsEli5={setIsEli5}
+                    isDetecting={isDetecting}
                   />
                 </motion.div>
               </AnimatePresence>
