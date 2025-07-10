@@ -1,8 +1,6 @@
 "use client";
 
 import { FC, useState } from 'react';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from './ui/button';
@@ -14,19 +12,6 @@ interface CodeEditorProps {
   setCode: (code: string) => void;
   language: string;
 }
-
-const codeEditorStyle = {
-  margin: 0,
-  padding: '1rem',
-  backgroundColor: 'transparent',
-  flex: 1,
-  height: '100%',
-  width: '100%',
-  overflow: 'auto',
-  fontSize: '14px',
-  lineHeight: '1.6',
-  fontFamily: 'Menlo, Monaco, "Courier New", monospace',
-};
 
 export const CodeEditor: FC<CodeEditorProps> = ({ code, setCode, language }) => {
   const [hasCopied, setHasCopied] = useState(false);
@@ -87,23 +72,10 @@ export const CodeEditor: FC<CodeEditorProps> = ({ code, setCode, language }) => 
           value={code}
           onChange={(e) => setCode(e.target.value)}
           placeholder="Paste your code here..."
-          className="code-editor-textarea absolute inset-0 w-full h-full resize-none bg-transparent text-transparent caret-white z-10 p-4 font-mono text-sm leading-relaxed border-0 focus-visible:ring-0 focus-visible:ring-offset-0"
           spellCheck="false"
-          style={{ lineHeight: '1.6', fontSize: '14px' }}
+          aria-label="Code editor input area"
+          className="w-full h-full resize-none p-4 font-mono text-sm leading-relaxed bg-card/70 border-0 focus-visible:ring-0 focus-visible:ring-offset-0 code-editor-textarea"
         />
-        <div className="flex-1 w-full rounded-b-xl overflow-auto">
-          <SyntaxHighlighter
-            language={language}
-            style={oneDark}
-            customStyle={codeEditorStyle}
-            wrapLongLines={true}
-            showLineNumbers={true}
-            lineNumberStyle={{ opacity: 0.5, minWidth: '2.5em', userSelect: 'none' }}
-            className="!bg-card/70 h-full"
-          >
-            {code || " "}
-          </SyntaxHighlighter>
-        </div>
       </CardContent>
     </Card>
   );
