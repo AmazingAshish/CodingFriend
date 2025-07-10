@@ -12,6 +12,7 @@ import {z} from 'genkit';
 
 const ExplainCodeInputSchema = z.object({
   code: z.string().describe('The code snippet to be explained.'),
+  isEli5: z.boolean().optional().describe('Whether to explain the code in "Explain Like I\'m 5" mode.'),
 });
 export type ExplainCodeInput = z.infer<typeof ExplainCodeInputSchema>;
 
@@ -28,7 +29,12 @@ const prompt = ai.definePrompt({
   name: 'explainCodePrompt',
   input: {schema: ExplainCodeInputSchema},
   output: {schema: ExplainCodeOutputSchema},
-  prompt: `You are an expert coding tutor. Explain the following code snippet in simple terms, as if you were explaining it to a student:
+  prompt: `You are an expert coding tutor.
+  {{#if isEli5}}
+  Explain the following code snippet in extremely simple terms, as if you were explaining it to a 5-year-old child. Use analogies and avoid technical jargon.
+  {{else}}
+  Explain the following code snippet in simple terms, as if you were explaining it to a student.
+  {{/if}}
 
 \`\`\`
 {{{code}}}
