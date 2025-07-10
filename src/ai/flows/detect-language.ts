@@ -9,6 +9,7 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import { detectLanguage as detectLanguageLocal } from '@/lib/language-detector';
 
 const DetectLanguageInputSchema = z.object({
   code: z.string().describe('The code snippet to analyze for language detection.'),
@@ -21,6 +22,18 @@ const DetectLanguageOutputSchema = z.object({
 export type DetectLanguageOutput = z.infer<typeof DetectLanguageOutputSchema>;
 
 export async function detectLanguage(input: DetectLanguageInput): Promise<DetectLanguageOutput> {
+  // If the code is very short, it's hard to detect, return empty
+  if (input.code.trim().length < 10) {
+    return { language: '' };
+  }
+
+  // First, try local detection
+  const localResult = detectLanguageLocal(input.code);
+  if (localResult.confidence > 30 && localResult.language !== 'Unknown') {
+    return { language: localResult.language.toLowerCase() };
+  }
+
+  // If local detection is not confident, fallback to AI
   return detectLanguageFlow(input);
 }
 
@@ -46,10 +59,6 @@ const detectLanguageFlow = ai.defineFlow(
     outputSchema: DetectLanguageOutputSchema,
   },
   async input => {
-    // If the code is very short, it's hard to detect, return empty
-    if (input.code.trim().length < 10) {
-      return { language: '' };
-    }
     const {output} = await detectLanguagePrompt(input);
     return output!;
   }
