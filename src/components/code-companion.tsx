@@ -16,11 +16,11 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 import { ActionToolbar } from "./action-toolbar";
 import { CodeEditor } from "./code-editor";
 import { OutputDisplay } from "./output-display";
-import { TooltipProvider } from "./ui/tooltip";
 
 export type Result = ExplainCodeOutput | AnalyzeCodeOutput | ConvertCodeOutput | null;
 export type ActiveTab = "explain" | "analyze" | "convert";
@@ -73,12 +73,11 @@ export const CodeCompanion = () => {
 
   return (
     <TooltipProvider>
-      <div className="w-full max-w-7xl mx-auto flex flex-col gap-4">
-        <Card className="glassmorphism sticky top-[calc(var(--header-height)_+_1rem)] z-40">
-          <CardContent className="p-4">
+      <div className="w-full max-w-7xl mx-auto flex flex-col gap-6">
+        <Card className="glassmorphism sticky top-[calc(var(--header-height)_+_1rem)] z-40 p-4">
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
               <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as ActiveTab)} className="w-full sm:w-auto">
-                <TabsList className="grid w-full grid-cols-3 sm:w-auto">
+                <TabsList className="grid w-full grid-cols-3 sm:w-auto bg-primary/10">
                   <TabsTrigger value="explain">Explain</TabsTrigger>
                   <TabsTrigger value="analyze">Analyze</TabsTrigger>
                   <TabsTrigger value="convert">Convert</TabsTrigger>
@@ -116,7 +115,6 @@ export const CodeCompanion = () => {
                 {isLoading ? "Processing..." : "Run"}
               </Button>
             </div>
-          </CardContent>
         </Card>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">

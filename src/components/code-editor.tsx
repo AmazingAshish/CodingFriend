@@ -2,8 +2,8 @@
 
 import { FC } from 'react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 
 interface CodeEditorProps {
@@ -36,20 +36,22 @@ export const CodeEditor: FC<CodeEditorProps> = ({ code, setCode, language }) => 
           value={code}
           onChange={(e) => setCode(e.target.value)}
           placeholder="Paste your code here..."
-          className="absolute inset-0 w-full h-full resize-none bg-transparent text-transparent caret-white z-10 p-4 font-mono text-sm leading-relaxed"
+          className="absolute inset-0 w-full h-full resize-none bg-transparent text-transparent caret-white z-10 p-4 font-mono text-sm leading-relaxed border-0 focus-visible:ring-0 focus-visible:ring-offset-0"
           spellCheck="false"
         />
-        <SyntaxHighlighter
-          language={language}
-          style={vscDarkPlus}
-          customStyle={codeEditorStyle}
-          wrapLongLines={true}
-          showLineNumbers={true}
-          lineNumberStyle={{ opacity: 0.5, minWidth: '2.5em' }}
-          className="!bg-card/70 flex-1 w-full rounded-b-lg"
-        >
-          {code || " "}
-        </SyntaxHighlighter>
+        <div className="flex-1 w-full rounded-b-xl overflow-hidden">
+          <SyntaxHighlighter
+            language={language}
+            style={oneDark}
+            customStyle={codeEditorStyle}
+            wrapLongLines={true}
+            showLineNumbers={true}
+            lineNumberStyle={{ opacity: 0.5, minWidth: '2.5em' }}
+            className="!bg-card/70 h-full"
+          >
+            {code || " "}
+          </SyntaxHighlighter>
+        </div>
       </CardContent>
     </Card>
   );
