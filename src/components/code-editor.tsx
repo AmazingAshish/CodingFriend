@@ -36,7 +36,7 @@ export const CodeEditor: FC<CodeEditorProps> = ({ code, setCode, language }) => 
           value={code}
           onChange={(e) => setCode(e.target.value)}
           placeholder="Paste your code here..."
-          className="absolute inset-0 w-full h-full resize-none bg-transparent text-transparent caret-white z-10 p-4 font-mono text-sm leading-relaxed border-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+          className="code-editor-textarea absolute inset-0 w-full h-full resize-none bg-transparent text-transparent caret-white z-10 p-4 font-mono text-sm leading-relaxed border-0 focus-visible:ring-0 focus-visible:ring-offset-0"
           spellCheck="false"
         />
         <div className="flex-1 w-full rounded-b-xl overflow-hidden">
