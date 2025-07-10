@@ -1,3 +1,5 @@
+"use client";
+
 import { Code } from "lucide-react";
 import { ThemeToggle } from "./theme-toggle";
 
