@@ -26,7 +26,7 @@ const codeEditorStyle = {
 
 export const CodeEditor: FC<CodeEditorProps> = ({ code, setCode, language }) => {
   return (
-    <Card className="h-full min-h-[400px] lg:h-[600px] flex flex-col glassmorphism">
+    <Card className="h-full flex flex-col glassmorphism">
       <CardHeader>
         <CardTitle>Your Code</CardTitle>
       </CardHeader>

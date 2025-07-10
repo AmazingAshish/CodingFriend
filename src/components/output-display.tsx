@@ -49,12 +49,13 @@ const MarkdownRenderer = ({ content }: { content: string }) => {
         if (index % 3 === 2) { // This is the code content
           const language = parts[index-1] || 'bash';
           return (
-            <div key={index} className="not-prose my-4 rounded-md bg-card/70 border">
+            <div key={index} className="not-prose my-4 rounded-md bg-card/70 border overflow-hidden">
               <SyntaxHighlighter
                 language={language}
                 style={oneDark}
                 customStyle={{ backgroundColor: 'transparent', padding: '1rem', margin: 0 }}
                 showLineNumbers
+                className="!bg-transparent"
               >
                 {part.trim()}
               </SyntaxHighlighter>
@@ -179,7 +180,7 @@ export const OutputDisplay: FC<OutputDisplayProps> = ({ isLoading, result, activ
   }
 
   return (
-    <Card className="h-full min-h-[400px] lg:h-[600px] flex flex-col overflow-hidden glassmorphism">
+    <Card className="h-full flex flex-col overflow-hidden glassmorphism">
        <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>{getTitle()}</CardTitle>
         {result && !isLoading && (
