@@ -161,7 +161,7 @@ export const CodeCompanion = () => {
             </div>
         </Card>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start h-full lg:h-[calc(100vh_-_var(--header-height)_-_120px)]">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
           <CodeEditor
             code={code}
             setCode={setCode}

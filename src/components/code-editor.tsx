@@ -1,6 +1,6 @@
 "use client";
 
-import { FC, useState } from 'react';
+import { FC, useState, useRef, useLayoutEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from './ui/button';
@@ -16,6 +16,15 @@ interface CodeEditorProps {
 export const CodeEditor: FC<CodeEditorProps> = ({ code, setCode, language }) => {
   const [hasCopied, setHasCopied] = useState(false);
   const { toast } = useToast();
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useLayoutEffect(() => {
+    const textarea = textareaRef.current;
+    if (textarea) {
+      textarea.style.height = 'auto'; // Reset height to recalculate
+      textarea.style.height = `${textarea.scrollHeight}px`;
+    }
+  }, [code]);
 
   const getFileExtension = (lang: string) => {
     const map: { [key: string]: string } = {
@@ -59,7 +68,7 @@ export const CodeEditor: FC<CodeEditorProps> = ({ code, setCode, language }) => 
 
 
   return (
-    <Card className="h-full flex flex-col glassmorphism overflow-hidden">
+    <Card className="flex flex-col glassmorphism overflow-hidden">
       <CardHeader className="flex flex-row items-center justify-between p-4 border-b border-border/20">
         <CardTitle className="text-sm font-mono text-muted-foreground">{`${language}${getFileExtension(language)}`}</CardTitle>
         <Button variant="ghost" size="icon" onClick={handleCopy} className="h-8 w-8 text-muted-foreground" aria-label="Copy code">
@@ -68,13 +77,14 @@ export const CodeEditor: FC<CodeEditorProps> = ({ code, setCode, language }) => 
       </CardHeader>
       <CardContent className="flex-1 flex relative p-0">
         <Textarea
+          ref={textareaRef}
           id="code-input"
           value={code}
           onChange={(e) => setCode(e.target.value)}
           placeholder="Paste your code here..."
           spellCheck="false"
           aria-label="Code editor input area"
-          className="w-full h-full resize-none p-4 font-mono text-sm leading-relaxed bg-card/70 border-0 focus-visible:ring-0 focus-visible:ring-offset-0 code-editor-textarea"
+          className="w-full min-h-[120px] resize-none p-4 font-mono text-sm leading-relaxed bg-card/70 border-0 focus-visible:ring-0 focus-visible:ring-offset-0 code-editor-textarea overflow-hidden"
         />
       </CardContent>
     </Card>
