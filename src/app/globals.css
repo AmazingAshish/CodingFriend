@@ -75,10 +75,10 @@
     transform: translateX(-100%);
     background-image: linear-gradient(
       90deg,
-      hsl(var(--card)/0) 0,
-      hsl(var(--card)/0.2) 20%,
-      hsl(var(--card)/0.5) 60%,
-      hsl(var(--card)/0)
+      hsla(var(--card), 0) 0,
+      hsla(var(--card), 0.2) 20%,
+      hsla(var(--card), 0.5) 60%,
+      hsla(var(--card), 0)
     );
     animation: shimmer 2s infinite;
   }
