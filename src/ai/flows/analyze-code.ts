@@ -37,10 +37,10 @@ Code:
 {{{code}}}
 \`\`\`
 
-For the given code, provide at least two alternative solutions: a brute-force approach and a more optimal solution. For each solution, provide the following:
+For the given code, provide at least two alternative solutions. For each solution, provide the following structure. Separate each complete solution with a \`---\` horizontal rule.
 
-### Solution 1: Brute-Force Approach
-- **Algorithm**: Explain the step-by-step logic of the brute-force solution using a numbered list.
+### Solution: [Approach Name, e.g., Brute-Force]
+- **Algorithm**: Explain the step-by-step logic of the solution using a numbered list.
 - **Code**: Provide the complete code for this solution in a markdown code block.
 - **Complexity Analysis**:
   - **Time Complexity**: State the Big O time complexity (e.g., \`O(n^2)\`) and explain why.
@@ -48,14 +48,14 @@ For the given code, provide at least two alternative solutions: a brute-force ap
 
 ---
 
-### Solution 2: Optimal Solution
+### Solution: [Approach Name, e.g., Optimal Solution]
 - **Algorithm**: Explain the step-by-step logic of the optimal solution (e.g., using dynamic programming, a greedy approach, two pointers, etc.) using a numbered list.
 - **Code**: Provide the complete code for the optimal solution in a markdown code block.
 - **Complexity Analysis**:
   - **Time Complexity**: State the Big O time complexity and explain why it's more efficient.
   - **Space Complexity**: State the Big O space complexity and explain why.
 
-If applicable, provide a third, even more optimized or different approach, following the same structure. Ensure the entire response is a single, clean markdown string.
+If applicable, provide a third, even more optimized or different approach, following the same structure and separating it with a \`---\`. Ensure the entire response is a single, clean markdown string.
 `,
 });
 

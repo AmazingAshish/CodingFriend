@@ -39,51 +39,62 @@ const InitialState: FC = () => (
 );
 
 
-const MarkdownRenderer = ({ content }: { content: string }) => {
-  const codeBlockRegex = /```(\w+)?\s*([\s\S]*?)```/g;
-  const parts = content.split(codeBlockRegex);
+const MarkdownRenderer = ({ content, activeTab }: { content: string; activeTab: ActiveTab }) => {
+  const renderSection = (sectionContent: string, sectionIndex: number) => {
+    const codeBlockRegex = /```(\w+)?\s*([\s\S]*?)```/g;
+    const parts = sectionContent.split(codeBlockRegex);
+
+    const colors = ['border-blue-400', 'border-purple-400', 'border-teal-400'];
+    const hrColor = colors[sectionIndex % colors.length];
+
+    return (
+      <div key={`section-${sectionIndex}`}>
+         {sectionIndex > 0 && <hr className={`my-6 border-t-2 ${hrColor}`} />}
+        {parts.map((part, index) => {
+          if (index % 3 === 2) { // This is the code content
+            const language = parts[index-1] || 'bash';
+            return (
+              <div key={index} className="not-prose my-4 rounded-md bg-card/70 border overflow-hidden">
+                <SyntaxHighlighter
+                  language={language}
+                  style={oneDark}
+                  customStyle={{ backgroundColor: 'transparent', padding: '1rem', margin: 0 }}
+                  showLineNumbers
+                  className="!bg-transparent"
+                >
+                  {part.trim()}
+                </SyntaxHighlighter>
+              </div>
+            );
+          }
+          if (index % 3 === 0) { // This is the markdown text
+              let html = part
+              .replace(/^### (.*$)/gim, '<h3 class="font-semibold text-lg !mt-4">$1</h3>')
+              .replace(/^## (.*$)/gim, '<h2 class="font-semibold text-xl !mt-6">$1</h2>')
+              .replace(/^# (.*$)/gim, '<h1 class="font-bold text-2xl !mt-8">$1</h1>')
+              .replace(/\*\*(.*)\*\*/g, '<strong>$1</strong>')
+              .replace(/\*(.*)\*/g, '<em>$1</em>')
+              .replace(/`([^`]+)`/g, '<code class="inline-code text-sm font-mono bg-muted/50 dark:bg-muted/30 text-accent-foreground p-1 rounded-sm">$1</code>')
+              .replace(/^\s*[-*] (.*)/gm, '<li class="my-1">$1</li>')
+              .replace(/(<li>.*<\/li>)/gs, '<ul>$1</ul>')
+              .replace(/^\s*\d+\. (.*)/gm, '<li class="my-1">$1</li>')
+              .replace(/(<li.*<\/li>)/gs, (match, p1) => {
+                  if (match.includes('<ol>') || match.includes('<ul>')) return match;
+                  return /^\s*\d+\./.test(content) ? `<ol>${p1}</ol>` : `<ul>${p1}</ul>`;
+              });
+            return <div key={index} dangerouslySetInnerHTML={{ __html: html }} />;
+          }
+          return null; 
+        })}
+      </div>
+    )
+  }
+
+  const sections = activeTab === 'solutions' ? content.split(/\n---\n/) : [content];
 
   return (
     <div className="prose prose-sm dark:prose-invert max-w-none p-6 text-foreground/80 whitespace-pre-wrap leading-relaxed">
-      {parts.map((part, index) => {
-        if (index % 3 === 2) { // This is the code content
-          const language = parts[index-1] || 'bash';
-          return (
-            <div key={index} className="not-prose my-4 rounded-md bg-card/70 border overflow-hidden">
-              <SyntaxHighlighter
-                language={language}
-                style={oneDark}
-                customStyle={{ backgroundColor: 'transparent', padding: '1rem', margin: 0 }}
-                showLineNumbers
-                className="!bg-transparent"
-              >
-                {part.trim()}
-              </SyntaxHighlighter>
-            </div>
-          );
-        }
-        if (index % 3 === 0) { // This is the markdown text
-            // Super basic markdown to HTML
-            let html = part
-            .replace(/^---$/gm, '<hr class="my-4 border-border/20">')
-            .replace(/^### (.*$)/gim, '<h3 class="font-semibold text-lg !mt-4">$1</h3>')
-            .replace(/^## (.*$)/gim, '<h2 class="font-semibold text-xl !mt-6">$1</h2>')
-            .replace(/^# (.*$)/gim, '<h1 class="font-bold text-2xl !mt-8">$1</h1>')
-            .replace(/\*\*(.*)\*\*/g, '<strong>$1</strong>')
-            .replace(/\*(.*)\*/g, '<em>$1</em>')
-            .replace(/`([^`]+)`/g, '<code class="inline-code text-sm font-mono bg-muted/50 dark:bg-muted/30 text-accent-foreground p-1 rounded-sm">$1</code>')
-            .replace(/^\s*[-*] (.*)/gm, '<li class="my-1">$1</li>')
-            .replace(/(<li>.*<\/li>)/gs, '<ul>$1</ul>')
-            .replace(/^\s*\d+\. (.*)/gm, '<li class="my-1">$1</li>')
-            .replace(/(<li.*<\/li>)/gs, (match, p1) => {
-                // prevent wrapping lists in lists
-                if (match.includes('<ol>') || match.includes('<ul>')) return match;
-                return /^\s*\d+\./.test(content) ? `<ol>${p1}</ol>` : `<ul>${p1}</ul>`;
-            });
-          return <div key={index} dangerouslySetInnerHTML={{ __html: html }} />;
-        }
-        return null; // This is the language part, which we've already used
-      })}
+      {sections.map(renderSection)}
     </div>
   );
 };
@@ -131,12 +142,11 @@ const ContentDisplay: FC<Omit<OutputDisplayProps, 'isLoading'>> = ({ result, act
           </div>
         )}
 
-        {activeTab === 'explain' && 'explanation' in result && result.explanation && (
-          <MarkdownRenderer content={result.explanation} />
-        )}
-
-        {activeTab === 'solutions' && 'analysis' in result && result.analysis && (
-          <MarkdownRenderer content={result.analysis} />
+        {(activeTab === 'explain' || activeTab === 'solutions') && (
+          <MarkdownRenderer 
+            content={'explanation' in result ? result.explanation : 'analysis' in result ? result.analysis : ""}
+            activeTab={activeTab} 
+          />
         )}
       </motion.div>
     </AnimatePresence>
@@ -182,8 +192,8 @@ export const OutputDisplay: FC<OutputDisplayProps> = ({ isLoading, result, activ
 
   return (
     <Card className="h-full flex flex-col overflow-hidden glassmorphism">
-       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>{getTitle()}</CardTitle>
+       <CardHeader className="flex flex-row items-center justify-between p-4 border-b border-border/20">
+        <CardTitle className="text-base">{getTitle()}</CardTitle>
         {result && !isLoading && (
             <Button variant="ghost" size="icon" onClick={handleCopy} className="h-8 w-8 text-muted-foreground">
                 {hasCopied ? <Check className="h-4 w-4 text-green-500" /> : <Clipboard className="h-4 w-4" />}
