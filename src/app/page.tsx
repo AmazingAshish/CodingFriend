@@ -8,8 +8,17 @@ export default function Home() {
       <main className="flex-1 w-full flex flex-col items-center justify-start p-4 sm:p-6 md:p-8">
         <CodeCompanion />
       </main>
-      <footer className="w-full text-center p-4 text-sm text-muted-foreground">
-        &copy; Coding Friend 2025 Designed and developed by Ashish Kumar with ❤️
+      <footer className="w-full text-center p-4 text-sm text-muted-foreground border-t border-border/40 mt-auto">
+        &copy; Coding Friend 2025 Designed and developed by{' '}
+        <a
+          href="https://ashishkm.vercel.app"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="font-medium text-primary hover:underline underline-offset-4"
+        >
+          Ashish Kumar
+        </a>{' '}
+        with ❤️
       </footer>
     </div>
   );
