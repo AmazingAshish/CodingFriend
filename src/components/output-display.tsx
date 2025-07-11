@@ -7,7 +7,7 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark, oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Button } from './ui/button';
-import { Check, Clipboard, Download, Maximize2, Minimize2, RefreshCw, Code2, FileText, Lightbulb, Zap, } from 'lucide-react';
+import { Check, Clipboard, Download, Maximize2, Minimize2, RefreshCw, Code2, FileText, Lightbulb, Zap } from 'lucide-react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
@@ -83,11 +83,6 @@ const LoadingState: FC = () => {
           <Skeleton className="h-4 w-4/5 bg-gradient-to-r from-muted/40 to-muted/20 animate-pulse" />
           <Skeleton className="h-20 w-full bg-gradient-to-r from-muted/30 to-muted/50 animate-pulse rounded-lg" />
         </motion.div>
-        <motion.div variants={ANIMATION_VARIANTS.item} className="space-y-3">
-          <Skeleton className="h-8 w-1/2 bg-gradient-to-r from-muted/40 to-muted/60 animate-pulse" />
-          <Skeleton className="h-4 w-full bg-gradient-to-r from-muted/20 to-muted/40 animate-pulse" />
-          <Skeleton className="h-4 w-full bg-gradient-to-r from-muted/30 to-muted/50 animate-pulse" />
-        </motion.div>
       </div>
     </motion.div>
   );
@@ -110,11 +105,16 @@ const InitialState: FC = () => (
   </motion.div>
 );
 
-const EnhancedMarkdownRenderer = ({ content, activeTab, searchState, isDarkMode }: {
-  content: string;
-  activeTab: ActiveTab;
-  searchState: SearchState;
-  isDarkMode: boolean;
+const EnhancedMarkdownRenderer = ({ 
+  content, 
+  activeTab, 
+  searchState, 
+  isDarkMode 
+}: { 
+  content: string; 
+  activeTab: ActiveTab; 
+  searchState: SearchState; 
+  isDarkMode: boolean; 
 }) => {
   const contentRef = useRef<HTMLDivElement>(null);
 
@@ -124,13 +124,29 @@ const EnhancedMarkdownRenderer = ({ content, activeTab, searchState, isDarkMode 
     return text.replace(regex, '<mark class="bg-yellow-200 dark:bg-yellow-900/50 px-1 rounded">$1</mark>');
   }, [searchState.query]);
 
-  const renderTable = useCallback((tableMarkdown: string, highlightFn: (text: string) => string) => {
-    const lines = tableMarkdown.trim().split('\n').filter(line => line.trim());
-    if (lines.length < 2) return null;
-  
-    const header = lines[0].split('|').map(s => s.trim()).filter(Boolean);
-    const rows = lines.slice(2).map(line => line.split('|').map(s => s.trim()).filter(Boolean));
-  
+  const renderTable = useCallback((tableContent: string) => {
+    // Improved table parsing logic
+    const lines = tableContent.trim().split('\n').filter(line => line.trim());
+    if (lines.length < 3) return null; // Need at least header, separator, and one data row
+
+    // Find header row (should contain |)
+    const headerLine = lines.find(line => line.includes('|') && (line.includes('Approach') || line.includes('Time') || line.includes('Space')));
+    if (!headerLine) return null;
+
+    // Find separator row (contains --- or similar)
+    const separatorIndex = lines.findIndex(line => line.includes('---') || line.includes('==='));
+    if (separatorIndex === -1) return null;
+
+    // Extract header
+    const header = headerLine.split('|').map(s => s.trim()).filter(Boolean);
+    
+    // Extract data rows (after separator)
+    const dataRows = lines.slice(separatorIndex + 1)
+      .filter(line => line.includes('|') && line.trim().length > 0)
+      .map(line => line.split('|').map(s => s.trim()).filter(Boolean));
+
+    if (header.length === 0 || dataRows.length === 0) return null;
+
     return (
       <div className="not-prose my-6 overflow-hidden rounded-lg border shadow-sm">
         <div className="overflow-x-auto">
@@ -138,23 +154,30 @@ const EnhancedMarkdownRenderer = ({ content, activeTab, searchState, isDarkMode 
             <thead>
               <tr className="border-b border-border bg-muted/30">
                 {header.map((head, i) => (
-                  <th
-                    key={i}
+                  <th 
+                    key={i} 
                     className="p-3 text-left font-semibold text-foreground"
-                    dangerouslySetInnerHTML={{ __html: highlightFn(head.replace(/`/g, '')) }}
+                    dangerouslySetInnerHTML={{ 
+                      __html: highlightSearchTerms(head.replace(/`/g, '')) 
+                    }}
                   />
                 ))}
               </tr>
             </thead>
             <tbody>
-              {rows.map((row, i) => (
-                <tr key={i} className="border-b border-border/30 last:border-b-0 hover:bg-muted/20 transition-colors duration-150">
+              {dataRows.map((row, i) => (
+                <tr 
+                  key={i} 
+                  className="border-b border-border/30 last:border-b-0 hover:bg-muted/20 transition-colors duration-150"
+                >
                   {row.map((cell, j) => (
-                    <td
-                      key={j}
+                    <td 
+                      key={j} 
                       className="p-3"
-                      dangerouslySetInnerHTML={{
-                        __html: highlightFn(cell.replace(/`([^`]+)`/g, '<code class="inline-code text-sm font-mono bg-muted/60 dark:bg-muted/40 text-accent-foreground px-1.5 py-0.5 rounded-md">$1</code>'))
+                      dangerouslySetInnerHTML={{ 
+                        __html: highlightSearchTerms(
+                          cell.replace(/`([^`]+)`/g, '<code class="inline-code text-sm font-mono bg-muted/60 dark:bg-muted/40 text-accent-foreground px-1.5 py-0.5 rounded-md">$1</code>')
+                        )
                       }}
                     />
                   ))}
@@ -165,23 +188,56 @@ const EnhancedMarkdownRenderer = ({ content, activeTab, searchState, isDarkMode 
         </div>
       </div>
     );
-  }, []);
+  }, [highlightSearchTerms]);
 
   const parseMarkdown = useCallback((markdown: string) => {
-    // Regex to split by code blocks or full markdown tables
-    const tableRegex = /((?:\|.*\|(?:\r?\n)?)+)/g;
-    const parts = markdown.split(/(```[\s\S]*?```|^\s*\|(?:.*\|)+\s*\r?\n\s*\|(?::?-+:?\|)+\s*\r?\n(?:(?:\s*\|.*\|)\s*\r?\n?)*)/gm);
-
+    // Split content by code blocks and tables
+    const codeBlockRegex = /(```[\s\S]*?```)/g;
+    const tableRegex = /(### Comparison Summary[\s\S]*?(?=\n###|$))/g;
+    
+    let parts: string[] = [];
+    let lastIndex = 0;
+    
+    // First, extract code blocks
+    let match;
+    const codeBlocks: { [key: string]: string } = {};
+    let codeBlockCounter = 0;
+    
+    while ((match = codeBlockRegex.exec(markdown)) !== null) {
+      const placeholder = `__CODE_BLOCK_${codeBlockCounter}__`;
+      codeBlocks[placeholder] = match[0];
+      markdown = markdown.replace(match[0], placeholder);
+      codeBlockCounter++;
+    }
+    
+    // Then extract tables
+    const tables: { [key: string]: string } = {};
+    let tableCounter = 0;
+    
+    while ((match = tableRegex.exec(markdown)) !== null) {
+      const placeholder = `__TABLE_${tableCounter}__`;
+      tables[placeholder] = match[0];
+      markdown = markdown.replace(match[0], placeholder);
+      tableCounter++;
+    }
+    
+    // Split by remaining content
+    parts = markdown.split(/(__|### |## |# )/g);
+    
     return parts.map((part, index) => {
       if (!part || !part.trim()) return null;
-
-      if (part.startsWith('```')) {
-        const codeBlockMatch = part.match(/```(\w+)?\n([\s\S]*?)\n```/);
-        if (!codeBlockMatch) return <div key={index}>{part}</div>;
-
+      
+      // Handle code blocks
+      if (part.startsWith('__CODE_BLOCK_')) {
+        const codeBlock = codeBlocks[part.trim()];
+        if (!codeBlock) return null;
+        
+        const codeBlockMatch = codeBlock.match(/```(\w+)?\n([\s\S]*?)\n```/);
+        if (!codeBlockMatch) return <div key={index}>{codeBlock}</div>;
+        
         const language = codeBlockMatch[1] || 'text';
         const code = codeBlockMatch[2].trim();
-
+        
         return (
           <motion.div
             key={`code-${index}`}
@@ -218,11 +274,26 @@ const EnhancedMarkdownRenderer = ({ content, activeTab, searchState, isDarkMode 
           </motion.div>
         );
       }
-
-      if (part.trim().startsWith('|') && part.trim().includes('---')) {
-        return <div key={index}>{renderTable(part, highlightSearchTerms)}</div>;
+      
+      // Handle tables
+      if (part.startsWith('__TABLE_')) {
+        const tableContent = tables[part.trim()];
+        if (!tableContent) return null;
+        
+        return (
+          <motion.div 
+            key={`table-${index}`}
+            variants={ANIMATION_VARIANTS.item}
+            initial="hidden"
+            animate="visible"
+          >
+            <h3 className="font-semibold text-xl mt-8 mb-4 text-foreground">Comparison Summary</h3>
+            {renderTable(tableContent)}
+          </motion.div>
+        );
       }
       
+      // Handle regular markdown
       let html = part
         .replace(/^#### (.*$)/gim, '<h4 class="font-semibold text-lg !mt-6 !mb-3 text-foreground">$1</h4>')
         .replace(/^### (.*$)/gim, '<h3 class="font-semibold text-xl !mt-8 !mb-4 text-foreground">$1</h3>')
@@ -233,20 +304,8 @@ const EnhancedMarkdownRenderer = ({ content, activeTab, searchState, isDarkMode 
         .replace(/`([^`]+)`/g, '<code class="inline-code text-sm font-mono bg-muted/60 dark:bg-muted/40 text-accent-foreground px-1.5 py-0.5 rounded-md">$1</code>')
         .replace(/^\s*[-*] (.*)/gm, '<li>$1</li>')
         .replace(/((<li>.*?<\/li>\s*)+)/gs, '<ul class="list-disc list-inside space-y-1 my-4 text-foreground/90">$1</ul>')
-        .replace(/^\s*(\d+)\. (.*)/gm, '<li>$2</li>')
-        .replace(/((<li>.*?<\/li>\s*)+)/gs, (match, p1) => {
-          const originalString = part; // Capture part in the outer scope
-          const precedingText = originalString.substring(0, originalString.indexOf(match));
-          if (precedingText.includes('<ol')) {
-            return p1;
-          }
-          // A bit of a heuristic: if the first item is "1.", treat as an ordered list.
-          if (p1.trim().startsWith('<li>1.')) {
-            return `<ol class="list-decimal list-inside space-y-1 my-4 text-foreground/90">${p1.replace(/^\s*<li>\d+\.\s*/gm, '<li>')}</ol>`;
-          }
-          return `<ul class="list-disc list-inside space-y-1 my-4 text-foreground/90">${p1}</ul>`;
-        });
-
+        .replace(/^\s*(\d+)\. (.*)/gm, '<li>$2</li>');
+      
       return (
         <motion.div
           key={`text-${index}`}
@@ -257,7 +316,7 @@ const EnhancedMarkdownRenderer = ({ content, activeTab, searchState, isDarkMode 
           dangerouslySetInnerHTML={{ __html: highlightSearchTerms(html) }}
         />
       );
-    });
+    }).filter(Boolean);
   }, [highlightSearchTerms, isDarkMode, renderTable]);
 
   const renderSolutions = useCallback((content: string) => {
@@ -364,7 +423,11 @@ const ContentDisplay: FC<Omit<OutputDisplayProps, 'isLoading' | 'className'> & {
               }}
               wrapLongLines={true}
               showLineNumbers={true}
-              lineNumberStyle={{ opacity: 0.6, minWidth: '3em', paddingRight: '1em' }}
+              lineNumberStyle={{
+                opacity: 0.6,
+                minWidth: '3em',
+                paddingRight: '1em'
+              }}
               className="!bg-card/70 h-full scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent"
             >
               {result.convertedCode}
@@ -415,9 +478,9 @@ export const OutputDisplay: FC<OutputDisplayProps> = ({
       if ('analysis' in result && result.analysis) return result.analysis;
       return "";
     })();
-
+    
     if (!content) return null;
-
+    
     return {
       characters: content.length,
       words: content.split(/\s+/).filter(Boolean).length,
@@ -435,9 +498,7 @@ export const OutputDisplay: FC<OutputDisplayProps> = ({
       attributeFilter: ['class'],
     });
 
-    // Set initial value
     setIsDarkMode(document.documentElement.classList.contains('dark'));
-
     return () => observer.disconnect();
   }, []);
 

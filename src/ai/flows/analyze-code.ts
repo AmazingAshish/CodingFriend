@@ -1,7 +1,7 @@
 'use server';
 /**
  * @fileOverview Provides comprehensive code analysis functionalities.
- *
+ * 
  * - analyzeCode - Generates multiple algorithmic solutions and a detailed analysis for a given code problem.
  * - AnalyzeCodeInput - The input type for the analyzeCode function.
  * - AnalyzeCodeOutput - The return type for the analyzeCode function.
@@ -13,15 +13,16 @@ import {z} from 'genkit';
 const AnalyzeCodeInputSchema = z.object({
   code: z.string().describe('The code snippet to analyze.'),
   language: z.string().optional().describe('The programming language of the code snippet.'),
-  maxSolutions: z.number().int().min(2).max(5).default(3).optional(),
+  maxSolutions: z.number().int().min(3).max(5).default(5).optional(), // Changed default to 5
 });
+
 export type AnalyzeCodeInput = z.infer<typeof AnalyzeCodeInputSchema>;
 
 const AnalyzeCodeOutputSchema = z.object({
   analysis: z.string().describe('A detailed analysis of the code in Markdown format, providing multiple solutions and a comparison table.'),
 });
-export type AnalyzeCodeOutput = z.infer<typeof AnalyzeCodeOutputSchema>;
 
+export type AnalyzeCodeOutput = z.infer<typeof AnalyzeCodeOutputSchema>;
 
 // Utility function to calculate simple code metrics
 function calculateCodeMetrics(code: string) {
@@ -31,24 +32,21 @@ function calculateCodeMetrics(code: string) {
   // Simple cyclomatic complexity estimation
   const complexityKeywords = ['if', 'else', 'for', 'while', 'case', 'catch', '&&', '||', '?'];
   const cyclomaticComplexity = complexityKeywords.reduce((count, keyword) => {
-    // A simple regex to find keywords, avoiding matches inside strings or comments is complex
-    // This is a basic approximation
     const escapedKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const regex = new RegExp(`\\b${escapedKeyword}\\b`, 'g');
     return count + (code.match(regex) || []).length;
   }, 1);
-
+  
   return {
     linesOfCode,
     cyclomaticComplexity,
   };
 }
 
-
 export async function analyzeCode(input: AnalyzeCodeInput): Promise<AnalyzeCodeOutput> {
   const validatedInput = AnalyzeCodeInputSchema.parse(input);
   const metrics = calculateCodeMetrics(validatedInput.code);
-
+  
   return analyzeCodeFlow({
     ...validatedInput,
     metrics
@@ -78,9 +76,16 @@ const analyzeCodePrompt = ai.definePrompt({
 
 ---
 
-First, provide at least two, and up to a maximum of {{maxSolutions}}, alternative solutions. For each solution, provide the following structure. Separate each complete solution with a \`---\` horizontal rule.
+**IMPORTANT FORMATTING REQUIREMENTS:**
+1. You MUST provide EXACTLY {{maxSolutions}} different solutions
+2. You MUST include a properly formatted comparison table at the end
+3. Each solution must follow the exact structure specified below
+4. The comparison table must be properly formatted with markdown table syntax
+
+First, provide exactly {{maxSolutions}} alternative solutions. For each solution, provide the following structure. Separate each complete solution with a \`---\` horizontal rule.
 
 ### Solution: [Approach Name, e.g., Brute-Force]
+
 #### Algorithm
 Explain the step-by-step logic of the solution using a numbered list.
 
@@ -93,17 +98,27 @@ Provide the complete code for this solution in a markdown code block.
 
 ---
 
-After providing all solutions, create a "Comparison Summary" section. This section must contain ONLY a Markdown table that compares all the solutions you provided. Do not add any other text. The table should have the columns: "Approach", "Time Complexity", and "Space Complexity".
+After providing all {{maxSolutions}} solutions, create a "Comparison Summary" section. This section must contain ONLY a properly formatted Markdown table that compares all the solutions you provided. The table MUST follow this exact format:
 
-Example:
 ### Comparison Summary
-| Approach                | Time Complexity | Space Complexity |
-| ----------------------- | --------------- | ---------------- |
-| [Solution 1 Name]       | \`O(...)\`      | \`O(...)\`         |
-| [Solution 2 Name]       | \`O(...)\`      | \`O(...)\`         |
-| [Solution 3 Name]       | \`O(...)\`      | \`O(...)\`         |
 
-Ensure the entire response is a single, clean markdown string.
+| Approach | Time Complexity | Space Complexity |
+|----------|----------------|------------------|
+| Solution 1 Name | \`O(...)\` | \`O(...)\` |
+| Solution 2 Name | \`O(...)\` | \`O(...)\` |
+| Solution 3 Name | \`O(...)\` | \`O(...)\` |
+| Solution 4 Name | \`O(...)\` | \`O(...)\` |
+| Solution 5 Name | \`O(...)\` | \`O(...)\` |
+
+**CRITICAL REQUIREMENTS:**
+- Replace "Solution X Name" with the actual approach names you used
+- Include exactly {{maxSolutions}} rows in the table
+- Use proper markdown table syntax with | separators
+- Include the header separator row with dashes
+- Wrap complexity notations in backticks
+- Do not add any additional text after the table
+
+Ensure the entire response is a single, clean markdown string with consistent formatting.
 `,
 });
 
@@ -111,15 +126,45 @@ const analyzeCodeFlow = ai.defineFlow(
   {
     name: 'analyzeCodeFlow',
     inputSchema: AnalyzeCodeInputSchema.extend({
-        metrics: z.object({
+      metrics: z.object({
         linesOfCode: z.number(),
         cyclomaticComplexity: z.number(),
-        })
+      })
     }),
     outputSchema: AnalyzeCodeOutputSchema,
   },
-  async input => {
+  async (input) => {
     const {output} = await analyzeCodePrompt(input);
-    return { analysis: output!.analysis };
+    
+    // Post-process the output to ensure consistent table formatting
+    let processedAnalysis = output!.analysis;
+    
+    // Fix common table formatting issues
+    processedAnalysis = processedAnalysis.replace(/\|\s*\|\s*\|/g, '|---|---|'); // Fix empty separator rows
+    processedAnalysis = processedAnalysis.replace(/\|(\s*-+\s*)\|/g, '|$1|'); // Ensure separator rows are properly formatted
+    
+    // Ensure comparison table is properly formatted
+    const tableRegex = /### Comparison Summary\s*\n\s*\n?\s*\|.*?\|\s*\n\s*\|.*?\|\s*\n((?:\s*\|.*?\|\s*\n)*)/gm;
+    processedAnalysis = processedAnalysis.replace(tableRegex, (match, tableRows) => {
+      // Reconstruct the table with proper formatting
+      const lines = match.split('\n').filter(line => line.trim());
+      const header = lines.find(line => line.includes('Approach') && line.includes('Time Complexity'));
+      const separator = '|----------|----------------|------------------|';
+      const dataRows = lines.filter(line => 
+        line.includes('|') && 
+        !line.includes('Approach') && 
+        !line.includes('---') &&
+        line.trim().length > 0
+      );
+      
+      if (header && dataRows.length > 0) {
+        return `### Comparison Summary\n\n${header}\n${separator}\n${dataRows.join('\n')}\n`;
+      }
+      return match;
+    });
+    
+    return {
+      analysis: processedAnalysis
+    };
   }
 );
