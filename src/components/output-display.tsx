@@ -127,10 +127,10 @@ const EnhancedMarkdownRenderer = ({ content, activeTab, searchState, isDarkMode 
   const renderTable = useCallback((tableMarkdown: string, highlightFn: (text: string) => string) => {
     const lines = tableMarkdown.trim().split('\n').filter(line => line.trim());
     if (lines.length < 2) return null;
-
+  
     const header = lines[0].split('|').map(s => s.trim()).filter(Boolean);
     const rows = lines.slice(2).map(line => line.split('|').map(s => s.trim()).filter(Boolean));
-
+  
     return (
       <div className="not-prose my-6 overflow-hidden rounded-lg border shadow-sm">
         <div className="overflow-x-auto">
@@ -168,17 +168,15 @@ const EnhancedMarkdownRenderer = ({ content, activeTab, searchState, isDarkMode 
   }, []);
 
   const parseMarkdown = useCallback((markdown: string) => {
-    // Regex to split by code blocks or full markdown tables.
-    const parts = markdown.split(/(```[\s\S]*?```|^\s*\|.*\|[\s\S]*?\|.*\|\s*$)/gm);
-    
+    const parts = markdown.split(/(```[\s\S]*?```|\|.*\|)/gm);
+
     return parts.map((part, index) => {
       if (!part || !part.trim()) return null;
 
-      // Code blocks
       if (part.startsWith('```')) {
         const codeBlockMatch = part.match(/```(\w+)?\n([\s\S]*?)\n```/);
         if (!codeBlockMatch) return <div key={index}>{part}</div>;
-        
+
         const language = codeBlockMatch[1] || 'text';
         const code = codeBlockMatch[2].trim();
 
@@ -219,12 +217,10 @@ const EnhancedMarkdownRenderer = ({ content, activeTab, searchState, isDarkMode 
         );
       }
 
-      // Table detection
       if (part.trim().startsWith('|') && part.trim().includes('---')) {
         return <div key={index}>{renderTable(part, highlightSearchTerms)}</div>;
       }
-
-      // Regular markdown parsing
+      
       let html = part
         .replace(/^#### (.*$)/gim, '<h4 class="font-semibold text-lg !mt-6 !mb-3 text-foreground">$1</h4>')
         .replace(/^### (.*$)/gim, '<h3 class="font-semibold text-xl !mt-8 !mb-4 text-foreground">$1</h3>')
@@ -237,10 +233,11 @@ const EnhancedMarkdownRenderer = ({ content, activeTab, searchState, isDarkMode 
         .replace(/((<li>.*?<\/li>\s*)+)/gs, '<ul class="list-disc list-inside space-y-1 my-4 text-foreground/90">$1</ul>')
         .replace(/^\s*(\d+)\. (.*)/gm, '<li>$2</li>')
         .replace(/((<li>.*?<\/li>\s*)+)/gs, (match, p1) => {
-          if (part.indexOf(match) > 0 && part.substring(0, part.indexOf(match)).includes('<ol')) {
+          const precedingText = part.substring(0, part.indexOf(match));
+          if (precedingText.includes('<ol')) {
             return p1;
           }
-          if (/^\s*1\./.test(p1.trim())) {
+          if (p1.trim().startsWith('1.')) {
             return `<ol class="list-decimal list-inside space-y-1 my-4 text-foreground/90">${p1}</ol>`;
           }
           return `<ul class="list-disc list-inside space-y-1 my-4 text-foreground/90">${p1}</ul>`;
@@ -503,7 +500,7 @@ export const OutputDisplay: FC<OutputDisplayProps> = ({
     a.href = url;
     a.download = `output.${extension}`;
     document.body.appendChild(a);
-a.click();
+    a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
   }, [result, activeTab, targetLanguage]);
