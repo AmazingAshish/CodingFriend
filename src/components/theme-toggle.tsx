@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
 
 export function ThemeToggle() {
   // Initialize state from localStorage or default to 'light'
@@ -45,11 +46,20 @@ export function ThemeToggle() {
 
 
   return (
-    <Button variant="ghost" size="icon" className="h-9 w-9" onClick={toggleTheme} aria-label="Toggle theme">
-      {theme === "light" ? 
-        <Moon className="h-[1.2rem] w-[1.2rem] transition-all" /> : 
-        <Sun className="h-[1.2rem] w-[1.2rem] transition-all" />
-      }
-    </Button>
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button variant="ghost" size="icon" className="h-9 w-9" onClick={toggleTheme} aria-label="Toggle theme">
+            {theme === "light" ? 
+              <Moon className="h-[1.2rem] w-[1.2rem] transition-all" /> : 
+              <Sun className="h-[1.2rem] w-[1.2rem] transition-all" />
+            }
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent side="bottom">
+          <p>Toggle theme</p>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 }
