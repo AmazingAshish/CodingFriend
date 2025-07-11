@@ -17,7 +17,8 @@ import {
   Code2,
   FileText,
   Lightbulb,
-  Zap
+  Zap,
+  Languages
 } from 'lucide-react';
 import { 
   Accordion, 
@@ -262,6 +263,7 @@ const EnhancedMarkdownRenderer = ({
         return <div key={index}>{renderTable(part, highlightSearchTerms)}</div>;
       }
       
+      const partString = part;
       let html = part
         .replace(/^#### (.*$)/gim, '<h4 class="font-semibold text-lg !mt-6 !mb-3 text-foreground">$1</h4>')
         .replace(/^### (.*$)/gim, '<h3 class="font-semibold text-xl !mt-8 !mb-4 text-foreground">$1</h3>')
@@ -273,16 +275,15 @@ const EnhancedMarkdownRenderer = ({
         .replace(/^\s*[-*] (.*)/gm, '<li>$1</li>')
         .replace(/((<li>.*?<\/li>\s*)+)/gs, '<ul class="list-disc list-inside space-y-1 my-4 text-foreground/90">$1</ul>')
         .replace(/^\s*(\d+)\. (.*)/gm, '<li>$2</li>')
-        .replace(/((<li>.*?<\/li>\s*)+)/gs, (match, p1, offset, string) => {
-            const listContent = p1;
-            const precedingText = string.substring(0, offset);
+        .replace(/((<li>.*?<\/li>\s*)+)/gs, (match, p1) => {
+            const precedingText = partString.substring(0, partString.indexOf(match));
             if (precedingText.includes('<ol')) {
-                return listContent;
+                return p1;
             }
-            if (listContent.includes('1.')) {
-                return `<ol class="list-decimal list-inside space-y-1 my-4 text-foreground/90">${listContent}</ol>`;
+            if (p1.includes('1.')) {
+                return `<ol class="list-decimal list-inside space-y-1 my-4 text-foreground/90">${p1}</ol>`;
             }
-            return `<ul class="list-disc list-inside space-y-1 my-4 text-foreground/90">${listContent}</ul>`;
+            return `<ul class="list-disc list-inside space-y-1 my-4 text-foreground/90">${p1}</ul>`;
         });
         
       return (
