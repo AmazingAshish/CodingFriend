@@ -168,8 +168,8 @@ const EnhancedMarkdownRenderer = ({ content, activeTab, searchState, isDarkMode 
   }, []);
 
   const parseMarkdown = useCallback((markdown: string) => {
-    // Enhanced regex to better detect table blocks
-    const parts = markdown.split(/(```(?:\w+)?\n[\s\S]*?\n```|\|(?:.*?\|)+)/g);
+    // Regex to split by code blocks or full markdown tables.
+    const parts = markdown.split(/(```[\s\S]*?```|^\s*\|.*\|[\s\S]*?\|.*\|\s*$)/gm);
     
     return parts.map((part, index) => {
       if (!part || !part.trim()) return null;
@@ -220,7 +220,7 @@ const EnhancedMarkdownRenderer = ({ content, activeTab, searchState, isDarkMode 
       }
 
       // Table detection
-      if (part.includes('|') && part.split('\n').filter(line => line.trim().includes('|')).length >= 2) {
+      if (part.trim().startsWith('|') && part.trim().includes('---')) {
         return <div key={index}>{renderTable(part, highlightSearchTerms)}</div>;
       }
 
@@ -237,11 +237,10 @@ const EnhancedMarkdownRenderer = ({ content, activeTab, searchState, isDarkMode 
         .replace(/((<li>.*?<\/li>\s*)+)/gs, '<ul class="list-disc list-inside space-y-1 my-4 text-foreground/90">$1</ul>')
         .replace(/^\s*(\d+)\. (.*)/gm, '<li>$2</li>')
         .replace(/((<li>.*?<\/li>\s*)+)/gs, (match, p1) => {
-          const precedingText = part.substring(0, part.indexOf(match));
-          if (precedingText.includes('<ol')) {
+          if (part.indexOf(match) > 0 && part.substring(0, part.indexOf(match)).includes('<ol')) {
             return p1;
           }
-          if (p1.includes('1.')) {
+          if (/^\s*1\./.test(p1.trim())) {
             return `<ol class="list-decimal list-inside space-y-1 my-4 text-foreground/90">${p1}</ol>`;
           }
           return `<ul class="list-disc list-inside space-y-1 my-4 text-foreground/90">${p1}</ul>`;
@@ -504,7 +503,7 @@ export const OutputDisplay: FC<OutputDisplayProps> = ({
     a.href = url;
     a.download = `output.${extension}`;
     document.body.appendChild(a);
-    a.click();
+a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
   }, [result, activeTab, targetLanguage]);
