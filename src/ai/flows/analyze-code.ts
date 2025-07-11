@@ -77,14 +77,14 @@ const analyzeCodePrompt = ai.definePrompt({
 ---
 
 **IMPORTANT FORMATTING REQUIREMENTS:**
-1. You MUST provide EXACTLY {{maxSolutions}} different solutions
-2. You MUST include a properly formatted comparison table at the end
-3. Each solution must follow the exact structure specified below
-4. The comparison table must be properly formatted with markdown table syntax
+1. You MUST provide EXACTLY {{maxSolutions}} different solutions.
+2. Each solution heading MUST include a descriptive tagline in parentheses, like (Brute-force), (Better), or (Optimal).
+3. Each solution must be separated by a \`---\` horizontal rule.
+4. After all solutions, you MUST include a "Comparison Summary" section with a single, properly formatted markdown table.
 
-First, provide exactly {{maxSolutions}} alternative solutions. For each solution, provide the following structure. Separate each complete solution with a \`---\` horizontal rule.
+**First, provide exactly {{maxSolutions}} alternative solutions. For each solution, provide the following structure:**
 
-### Solution: [Approach Name, e.g., Brute-Force]
+### Solution: [Approach Name] (Tagline)
 
 #### Algorithm
 Explain the step-by-step logic of the solution using a numbered list.
@@ -97,26 +97,26 @@ Provide the complete code for this solution in a markdown code block.
 - **Space Complexity**: State the Big O space complexity (e.g., \`O(n)\`) and explain why.
 
 ---
+**(Repeat for all solutions)**
+---
 
-After providing all {{maxSolutions}} solutions, create a "Comparison Summary" section. This section must contain ONLY a properly formatted Markdown table that compares all the solutions you provided. The table MUST follow this exact format:
+**After providing all solutions, create the final "Comparison Summary" section.**
 
 ### Comparison Summary
 
 | Approach | Time Complexity | Space Complexity |
-|----------|----------------|------------------|
-| Solution 1 Name | \`O(...)\` | \`O(...)\` |
-| Solution 2 Name | \`O(...)\` | \`O(...)\` |
-| Solution 3 Name | \`O(...)\` | \`O(...)\` |
-| Solution 4 Name | \`O(...)\` | \`O(...)\` |
-| Solution 5 Name | \`O(...)\` | \`O(...)\` |
+|----------|-----------------|------------------|
+| [Solution 1 Name] | \`O(...)\`      | \`O(...)\`       |
+| [Solution 2 Name] | \`O(...)\`      | \`O(...)\`       |
+| [Solution 3 Name] | \`O(...)\`      | \`O(...)\`       |
+| [Solution 4 Name] | \`O(...)\`      | \`O(...)\`       |
+| [Solution 5 Name] | \`O(...)\`      | \`O(...)\`       |
 
 **CRITICAL REQUIREMENTS:**
-- Replace "Solution X Name" with the actual approach names you used
-- Include exactly {{maxSolutions}} rows in the table
-- Use proper markdown table syntax with | separators
-- Include the header separator row with dashes
-- Wrap complexity notations in backticks
-- Do not add any additional text after the table
+- The "Comparison Summary" section must appear ONLY ONCE, at the very end.
+- The summary must contain ONLY the table. Do not add any text before or after the table in this section.
+- The table must have exactly {{maxSolutions}} data rows.
+- Use proper markdown table syntax. Wrap complexity notations in backticks.
 
 Ensure the entire response is a single, clean markdown string with consistent formatting.
 `,
