@@ -78,7 +78,7 @@ const analyzeCodePrompt = ai.definePrompt({
 
 ---
 
-First, provide at least two, and up to a maximum of {{maxSolutions}}, alternative solutions. For each solution, provide the following structure, separating each complete solution with a \`---\` horizontal rule.
+First, provide at least two, and up to a maximum of {{maxSolutions}}, alternative solutions. For each solution, provide the following structure. Separate each complete solution with a \`---\` horizontal rule.
 
 ### Solution: [Approach Name, e.g., Brute-Force]
 #### Algorithm
@@ -101,6 +101,7 @@ Example:
 | ----------------------- | --------------- | ---------------- |
 | [Solution 1 Name]       | \`O(...)\`      | \`O(...)\`         |
 | [Solution 2 Name]       | \`O(...)\`      | \`O(...)\`         |
+| [Solution 3 Name]       | \`O(...)\`      | \`O(...)\`         |
 
 Ensure the entire response is a single, clean markdown string.
 `,

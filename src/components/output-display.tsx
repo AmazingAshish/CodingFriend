@@ -168,7 +168,9 @@ const EnhancedMarkdownRenderer = ({ content, activeTab, searchState, isDarkMode 
   }, []);
 
   const parseMarkdown = useCallback((markdown: string) => {
-    const parts = markdown.split(/(```[\s\S]*?```|\|.*\|)/gm);
+    // Regex to split by code blocks or full markdown tables
+    const tableRegex = /((?:\|.*\|(?:\r?\n)?)+)/g;
+    const parts = markdown.split(/(```[\s\S]*?```|^\s*\|(?:.*\|)+\s*\r?\n\s*\|(?::?-+:?\|)+\s*\r?\n(?:(?:\s*\|.*\|)\s*\r?\n?)*)/gm);
 
     return parts.map((part, index) => {
       if (!part || !part.trim()) return null;
@@ -233,12 +235,14 @@ const EnhancedMarkdownRenderer = ({ content, activeTab, searchState, isDarkMode 
         .replace(/((<li>.*?<\/li>\s*)+)/gs, '<ul class="list-disc list-inside space-y-1 my-4 text-foreground/90">$1</ul>')
         .replace(/^\s*(\d+)\. (.*)/gm, '<li>$2</li>')
         .replace(/((<li>.*?<\/li>\s*)+)/gs, (match, p1) => {
-          const precedingText = part.substring(0, part.indexOf(match));
+          const originalString = part; // Capture part in the outer scope
+          const precedingText = originalString.substring(0, originalString.indexOf(match));
           if (precedingText.includes('<ol')) {
             return p1;
           }
-          if (p1.trim().startsWith('1.')) {
-            return `<ol class="list-decimal list-inside space-y-1 my-4 text-foreground/90">${p1}</ol>`;
+          // A bit of a heuristic: if the first item is "1.", treat as an ordered list.
+          if (p1.trim().startsWith('<li>1.')) {
+            return `<ol class="list-decimal list-inside space-y-1 my-4 text-foreground/90">${p1.replace(/^\s*<li>\d+\.\s*/gm, '<li>')}</ol>`;
           }
           return `<ul class="list-disc list-inside space-y-1 my-4 text-foreground/90">${p1}</ul>`;
         });
