@@ -125,25 +125,19 @@ const EnhancedMarkdownRenderer = ({
   }, [searchState.query]);
 
   const renderTable = useCallback((tableContent: string) => {
-    // Improved table parsing logic
     const lines = tableContent.trim().split('\n').filter(line => line.trim());
-    if (lines.length < 3) return null; // Need at least header, separator, and one data row
+    if (lines.length < 3) return null;
 
-    // Find header row (should contain |)
     const headerLine = lines.find(line => line.includes('|') && (line.includes('Approach') || line.includes('Time') || line.includes('Space')));
     if (!headerLine) return null;
-
-    // Find separator row (contains --- or similar)
-    const separatorIndex = lines.findIndex(line => line.includes('---') || line.includes('==='));
+    
+    const separatorIndex = lines.findIndex(line => line.includes('---'));
     if (separatorIndex === -1) return null;
 
-    // Extract header
     const header = headerLine.split('|').map(s => s.trim()).filter(Boolean);
-    
-    // Extract data rows (after separator)
     const dataRows = lines.slice(separatorIndex + 1)
-      .filter(line => line.includes('|') && line.trim().length > 0)
-      .map(line => line.split('|').map(s => s.trim()).filter(Boolean));
+      .map(line => line.split('|').map(s => s.trim()).filter(Boolean))
+      .filter(row => row.length > 0 && row.some(cell => cell));
 
     if (header.length === 0 || dataRows.length === 0) return null;
 
@@ -191,49 +185,15 @@ const EnhancedMarkdownRenderer = ({
   }, [highlightSearchTerms]);
 
   const parseMarkdown = useCallback((markdown: string) => {
-    // Split content by code blocks and tables
-    const codeBlockRegex = /(```[\s\S]*?```)/g;
-    const tableRegex = /(### Comparison Summary[\s\S]*?(?=\n###|$))/g;
-    
-    let parts: string[] = [];
-    let lastIndex = 0;
-    
-    // First, extract code blocks
-    let match;
-    const codeBlocks: { [key: string]: string } = {};
-    let codeBlockCounter = 0;
-    
-    while ((match = codeBlockRegex.exec(markdown)) !== null) {
-      const placeholder = `__CODE_BLOCK_${codeBlockCounter}__`;
-      codeBlocks[placeholder] = match[0];
-      markdown = markdown.replace(match[0], placeholder);
-      codeBlockCounter++;
-    }
-    
-    // Then extract tables
-    const tables: { [key: string]: string } = {};
-    let tableCounter = 0;
-    
-    while ((match = tableRegex.exec(markdown)) !== null) {
-      const placeholder = `__TABLE_${tableCounter}__`;
-      tables[placeholder] = match[0];
-      markdown = markdown.replace(match[0], placeholder);
-      tableCounter++;
-    }
-    
-    // Split by remaining content
-    parts = markdown.split(/(__|### |## |# )/g);
-    
+    const combinedRegex = /(```[\s\S]*?```|### Comparison Summary[\s\S]*?(?=\n###|$))/g;
+    const parts = markdown.split(combinedRegex);
+
     return parts.map((part, index) => {
       if (!part || !part.trim()) return null;
-      
-      // Handle code blocks
-      if (part.startsWith('__CODE_BLOCK_')) {
-        const codeBlock = codeBlocks[part.trim()];
-        if (!codeBlock) return null;
-        
-        const codeBlockMatch = codeBlock.match(/```(\w+)?\n([\s\S]*?)\n```/);
-        if (!codeBlockMatch) return <div key={index}>{codeBlock}</div>;
+
+      if (part.startsWith('```')) {
+        const codeBlockMatch = part.match(/```(\w+)?\n([\s\S]*?)\n```/);
+        if (!codeBlockMatch) return <div key={index}>{part}</div>;
         
         const language = codeBlockMatch[1] || 'text';
         const code = codeBlockMatch[2].trim();
@@ -275,11 +235,8 @@ const EnhancedMarkdownRenderer = ({
         );
       }
       
-      // Handle tables
-      if (part.startsWith('__TABLE_')) {
-        const tableContent = tables[part.trim()];
-        if (!tableContent) return null;
-        
+      if (part.startsWith('### Comparison Summary')) {
+        const tableContent = part.replace('### Comparison Summary', '').trim();
         return (
           <motion.div 
             key={`table-${index}`}
@@ -293,7 +250,6 @@ const EnhancedMarkdownRenderer = ({
         );
       }
       
-      // Handle regular markdown
       let html = part
         .replace(/^#### (.*$)/gim, '<h4 class="font-semibold text-lg !mt-6 !mb-3 text-foreground">$1</h4>')
         .replace(/^### (.*$)/gim, '<h3 class="font-semibold text-xl !mt-8 !mb-4 text-foreground">$1</h3>')
@@ -320,10 +276,10 @@ const EnhancedMarkdownRenderer = ({
   }, [highlightSearchTerms, isDarkMode, renderTable]);
 
   const renderSolutions = useCallback((content: string) => {
-    const sections = content.split(/(?=### Solution:|### Comparison Summary)/);
-    const solutions = sections.filter(sec => sec.includes('### Solution:'));
-    const comparisonSection = sections.find(sec => sec.includes('### Comparison Summary'));
-
+    const sections = content.split(/(?=### Solution:)/);
+    const solutions = sections.filter(sec => sec.startsWith('### Solution:'));
+    const comparisonSectionText = content.split('### Comparison Summary')[1] || '';
+    
     return (
       <motion.div
         variants={ANIMATION_VARIANTS.stagger}
@@ -358,11 +314,9 @@ const EnhancedMarkdownRenderer = ({
           })}
         </Accordion>
 
-        {comparisonSection && (
+        {comparisonSectionText && (
           <motion.div className="mt-8" variants={ANIMATION_VARIANTS.item}>
-            <div className="prose prose-sm dark:prose-invert max-w-none">
-              {parseMarkdown(comparisonSection)}
-            </div>
+            {parseMarkdown(`### Comparison Summary${comparisonSectionText}`)}
           </motion.div>
         )}
       </motion.div>
