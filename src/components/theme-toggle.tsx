@@ -6,14 +6,15 @@ import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
 
 export function ThemeToggle() {
-  // Initialize state from localStorage or default to 'light'
-  const [theme, setTheme] = useState<string>('light');
+  // Initialize state from localStorage or default to 'dark'
+  const [theme, setTheme] = useState<string>('dark');
 
   useEffect(() => {
     // This effect runs once on mount to set the theme from localStorage
     const storedTheme = localStorage.getItem("theme");
     const systemPrefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    const initialTheme = storedTheme || (systemPrefersDark ? 'dark' : 'light');
+    // Default to dark mode if no theme is stored
+    const initialTheme = storedTheme || (systemPrefersDark ? 'dark' : 'dark');
     setTheme(initialTheme);
   }, []);
 
