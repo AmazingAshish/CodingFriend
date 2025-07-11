@@ -141,3 +141,4 @@ Contributions are welcome and greatly appreciated! If you have an idea for an im
 ## 📄 License
 
 This project is licensed under the MIT License. See the `LICENSE` file for more details.
+# CodingFriend
