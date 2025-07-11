@@ -186,98 +186,12 @@ const EnhancedMarkdownRenderer = ({
     return text.replace(regex, '<mark class="bg-yellow-200 dark:bg-yellow-900/50 px-1 rounded">$1</mark>');
   }, [searchState.query]);
 
-  const parseMarkdown = useCallback((markdown: string): (React.JSX.Element | null)[] => {
-    const codeBlockRegex = /```(\w+)?\s*([\s\S]*?)```/g;
-    const parts = markdown.split(codeBlockRegex);
-    
-    return parts.map((part, index) => {
-      if (index % 3 === 2) {
-        const language = parts[index - 1] || 'text';
-        return (
-          <motion.div 
-            key={`code-${index}`} 
-            className="not-prose my-6 rounded-lg bg-card/70 border overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200"
-            variants={ANIMATION_VARIANTS.item}
-            initial="hidden"
-            animate="visible"
-          >
-            <div className="flex items-center justify-between px-4 py-2 border-b border-border/20 bg-muted/30">
-              <div className="flex items-center gap-2">
-                <Code2 className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm font-medium text-muted-foreground capitalize">{language}</span>
-              </div>
-              <Badge variant="outline" className="text-xs">
-                {part.trim().split('\n').length} lines
-              </Badge>
-            </div>
-            <SyntaxHighlighter 
-              language={language} 
-              style={isDarkMode ? oneDark : oneLight}
-              customStyle={{ 
-                backgroundColor: 'transparent', 
-                padding: '1rem', 
-                margin: 0,
-                fontSize: '14px',
-                lineHeight: '1.5'
-              }}
-              showLineNumbers
-              wrapLongLines
-              className="!bg-transparent"
-            >
-              {part.trim()}
-            </SyntaxHighlighter>
-          </motion.div>
-        );
-      }
-      
-      if (index % 3 === 0) {
-        return (
-          <motion.div 
-            key={`text-${index}`}
-            variants={ANIMATION_VARIANTS.item}
-            initial="hidden"
-            animate="visible"
-          >
-            {parseTextContent(part, highlightSearchTerms)}
-          </motion.div>
-        );
-      }
-      
-      return null;
-    });
-  }, [highlightSearchTerms, isDarkMode]);
+  const renderTable = useCallback((tableMarkdown: string, highlightFn: (text: string) => string) => {
+    const lines = tableMarkdown.trim().split('\n');
+    if (lines.length < 2) return null;
 
-  const parseTextContent = useCallback((text: string, highlightFn: (text: string) => string) => {
-    const tableRegex = /^\|(.+)\|\r?\n\|( *[-:]+ *\|)+[\s\S]*?(?=\r?\n\r?\n|$)/gm;
-    
-    let processedText = text;
-    const tables: React.JSX.Element[] = [];
-    
-    processedText = processedText.replace(tableRegex, (tableMatch) => {
-        tables.push(renderTable(tableMatch, highlightFn));
-        return '%%TABLE_PLACEHOLDER%%';
-    });
-
-    const textParts = processedText.split('%%TABLE_PLACEHOLDER%%');
-
-    return (
-        <>
-            {textParts.map((part, index) => (
-                <React.Fragment key={index}>
-                    {renderFormattedText(part, highlightFn)}
-                    {tables[index]}
-                </React.Fragment>
-            ))}
-        </>
-    );
-  }, []);
-
-  const renderTable = useCallback((content: string, highlightFn: (text: string) => string) => {
-    const lines = content.trim().split('\n');
-    const headerCells = lines[0].split('|').slice(1, -1).map(h => h.trim());
-    const bodyRows = lines.slice(2).map(row => 
-      row.split('|').slice(1, -1).map(c => c.trim())
-    );
+    const header = lines[0].split('|').map(s => s.trim()).filter(Boolean);
+    const rows = lines.slice(2).map(line => line.split('|').map(s => s.trim()).filter(Boolean));
 
     return (
       <div className="not-prose my-6 overflow-hidden rounded-lg border shadow-sm">
@@ -285,29 +199,20 @@ const EnhancedMarkdownRenderer = ({
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border bg-muted/30">
-                {headerCells.map((header, i) => (
-                  <th 
-                    key={i} 
-                    className="p-3 text-left font-semibold text-foreground"
-                    dangerouslySetInnerHTML={{ 
-                      __html: highlightFn(header.replace(/`/g, '')) 
-                    }}
+                {header.map((head, i) => (
+                  <th key={i} className="p-3 text-left font-semibold text-foreground"
+                    dangerouslySetInnerHTML={{ __html: highlightFn(head.replace(/`/g, '')) }}
                   />
                 ))}
               </tr>
             </thead>
             <tbody>
-              {bodyRows.map((row, i) => (
-                <tr 
-                  key={i} 
-                  className="border-b border-border/30 last:border-b-0 hover:bg-muted/20 transition-colors duration-150"
-                >
+              {rows.map((row, i) => (
+                <tr key={i} className="border-b border-border/30 last:border-b-0 hover:bg-muted/20 transition-colors duration-150">
                   {row.map((cell, j) => (
-                    <td 
-                      key={j} 
-                      className="p-3"
-                      dangerouslySetInnerHTML={{ 
-                        __html: highlightFn(cell.replace(/`([^`]+)`/g, 
+                    <td key={j} className="p-3"
+                      dangerouslySetInnerHTML={{
+                        __html: highlightFn(cell.replace(/`([^`]+)`/g,
                           '<code class="inline-code text-sm font-mono bg-muted/60 dark:bg-muted/40 text-accent-foreground px-1.5 py-0.5 rounded-md">$1</code>'
                         ))
                       }}
@@ -322,26 +227,79 @@ const EnhancedMarkdownRenderer = ({
     );
   }, []);
 
-  const renderFormattedText = useCallback((text: string, highlightFn: (text: string) => string) => {
-    let html = text
-      .replace(/^#### (.*$)/gim, '<h4 class="font-semibold text-lg !mt-6 !mb-3 text-foreground">$1</h4>')
-      .replace(/^### (.*$)/gim, '<h3 class="font-semibold text-xl !mt-8 !mb-4 text-foreground">$1</h3>')
-      .replace(/^## (.*$)/gim, '<h2 class="font-semibold text-2xl !mt-10 !mb-4 text-foreground">$1</h2>')
-      .replace(/^# (.*$)/gim, '<h1 class="font-bold text-3xl !mt-12 !mb-6 text-foreground">$1</h1>')
-      .replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold text-foreground">$1</strong>')
-      .replace(/\*(.*?)\*/g, '<em class="italic text-foreground/90">$1</em>')
-      .replace(/`([^`]+)`/g, '<code class="inline-code text-sm font-mono bg-muted/60 dark:bg-muted/40 text-accent-foreground px-1.5 py-0.5 rounded-md">$1</code>')
-      .replace(/^\s*[-*] (.*)/gm, '<li class="ml-4 mb-1">$1</li>')
-      .replace(/^\s*(\d+)\. (.*)/gm, '<li class="ml-4 mb-1">$2</li>')
-      .replace(/((<li.*?>.*?<\/li>\s*)+)/gs, '<ul class="list-disc list-inside space-y-1 my-4 text-foreground/90">$1</ul>');
+  const parseMarkdown = useCallback((markdown: string) => {
+    const parts = markdown.split(/(```(?:\w+)?\n[\s\S]*?\n```|\|(?:[^\n\r|]*\|)+)/g);
+    
+    return parts.map((part, index) => {
+      if (part.startsWith('```')) {
+        const codeBlockMatch = part.match(/```(\w+)?\n([\s\S]*?)\n```/);
+        if (!codeBlockMatch) return <div key={index}>{part}</div>;
 
-    return (
-      <div 
-        className="prose prose-sm dark:prose-invert max-w-none leading-relaxed"
-        dangerouslySetInnerHTML={{ __html: highlightFn(html) }}
-      />
-    );
-  }, []);
+        const language = codeBlockMatch[1] || 'text';
+        const code = codeBlockMatch[2].trim();
+        return (
+          <motion.div 
+            key={`code-${index}`} 
+            className="not-prose my-6 rounded-lg bg-card/70 border overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200"
+            variants={ANIMATION_VARIANTS.item}
+            initial="hidden"
+            animate="visible"
+          >
+            <div className="flex items-center justify-between px-4 py-2 border-b border-border/20 bg-muted/30">
+              <div className="flex items-center gap-2">
+                <Code2 className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm font-medium text-muted-foreground capitalize">{language}</span>
+              </div>
+              <Badge variant="outline" className="text-xs">
+                {code.split('\n').length} lines
+              </Badge>
+            </div>
+            <SyntaxHighlighter 
+              language={language} 
+              style={isDarkMode ? oneDark : oneLight}
+              customStyle={{ backgroundColor: 'transparent', padding: '1rem', margin: 0, fontSize: '14px', lineHeight: '1.5' }}
+              showLineNumbers
+              wrapLongLines
+              className="!bg-transparent"
+            >
+              {code}
+            </SyntaxHighlighter>
+          </motion.div>
+        );
+      }
+      
+      if (part.startsWith('|')) {
+        return <div key={index}>{renderTable(part, highlightSearchTerms)}</div>;
+      }
+      
+      let html = part
+        .replace(/^#### (.*$)/gim, '<h4 class="font-semibold text-lg !mt-6 !mb-3 text-foreground">$1</h4>')
+        .replace(/^### (.*$)/gim, '<h3 class="font-semibold text-xl !mt-8 !mb-4 text-foreground">$1</h3>')
+        .replace(/^## (.*$)/gim, '<h2 class="font-semibold text-2xl !mt-10 !mb-4 text-foreground">$1</h2>')
+        .replace(/^# (.*$)/gim, '<h1 class="font-bold text-3xl !mt-12 !mb-6 text-foreground">$1</h1>')
+        .replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold text-foreground">$1</strong>')
+        .replace(/\*(.*?)\*/g, '<em class="italic text-foreground/90">$1</em>')
+        .replace(/`([^`]+)`/g, '<code class="inline-code text-sm font-mono bg-muted/60 dark:bg-muted/40 text-accent-foreground px-1.5 py-0.5 rounded-md">$1</code>')
+        .replace(/^\s*[-*] (.*)/gm, '<li>$1</li>')
+        .replace(/((<li>.*?<\/li>\s*)+)/gs, '<ul class="list-disc list-inside space-y-1 my-4 text-foreground/90">$1</ul>')
+        .replace(/^\s*(\d+)\. (.*)/gm, '<li>$2</li>')
+        .replace(/((<li>.*?<\/li>\s*)+)/gs, (match) => {
+          if(match.includes('1.')) return `<ol class="list-decimal list-inside space-y-1 my-4 text-foreground/90">${match}</ol>`;
+          return `<ul class="list-disc list-inside space-y-1 my-4 text-foreground/90">${match}</ul>`;
+        });
+        
+      return (
+        <motion.div 
+            key={`text-${index}`}
+            variants={ANIMATION_VARIANTS.item}
+            initial="hidden"
+            animate="visible"
+            className="prose prose-sm dark:prose-invert max-w-none leading-relaxed"
+            dangerouslySetInnerHTML={{ __html: highlightSearchTerms(html) }}
+        />
+      );
+    });
+  }, [highlightSearchTerms, isDarkMode, renderTable]);
 
   const renderSolutions = useCallback((content: string) => {
     const sections = content.split('---');
@@ -398,9 +356,9 @@ const EnhancedMarkdownRenderer = ({
   return (
     <div 
       ref={contentRef}
-      className="prose prose-sm dark:prose-invert max-w-none p-6 text-foreground/90 leading-relaxed"
+      className="max-w-none p-6 text-foreground/90 leading-relaxed"
     >
-      {activeTab === 'solutions' ? renderSolutions(content) : parseMarkdown(content)}
+      {activeTab === 'solutions' ? renderSolutions(content) : <div className="prose prose-sm dark:prose-invert max-w-none">{parseMarkdown(content)}</div>}
     </div>
   );
 };
