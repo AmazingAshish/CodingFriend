@@ -276,10 +276,13 @@ const EnhancedMarkdownRenderer = ({
   }, [highlightSearchTerms, isDarkMode, renderTable]);
 
   const renderSolutions = useCallback((content: string) => {
-    const sections = content.split(/(?=### Solution:)/);
-    const solutions = sections.filter(sec => sec.startsWith('### Solution:'));
-    const comparisonSectionText = content.split('### Comparison Summary')[1] || '';
+    const summaryRegex = /### Comparison Summary[\s\S]*/;
+    const summaryMatch = content.match(summaryRegex);
+    const comparisonSection = summaryMatch ? summaryMatch[0] : '';
+    const solutionsContent = summaryMatch ? content.slice(0, summaryMatch.index) : content;
     
+    const solutions = solutionsContent.split('---').filter(sec => sec.trim().startsWith('### Solution:'));
+
     return (
       <motion.div
         variants={ANIMATION_VARIANTS.stagger}
@@ -314,9 +317,11 @@ const EnhancedMarkdownRenderer = ({
           })}
         </Accordion>
 
-        {comparisonSectionText && (
+        {comparisonSection && (
           <motion.div className="mt-8" variants={ANIMATION_VARIANTS.item}>
-            {parseMarkdown(`### Comparison Summary${comparisonSectionText}`)}
+            <div className="prose prose-sm dark:prose-invert max-w-none">
+              {parseMarkdown(comparisonSection)}
+            </div>
           </motion.div>
         )}
       </motion.div>

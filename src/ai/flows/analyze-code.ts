@@ -13,7 +13,7 @@ import {z} from 'genkit';
 const AnalyzeCodeInputSchema = z.object({
   code: z.string().describe('The code snippet to analyze.'),
   language: z.string().optional().describe('The programming language of the code snippet.'),
-  maxSolutions: z.number().int().min(3).max(5).default(5).optional(), // Changed default to 5
+  maxSolutions: z.number().int().min(3).max(5).default(5).optional(),
 });
 
 export type AnalyzeCodeInput = z.infer<typeof AnalyzeCodeInputSchema>;
@@ -149,7 +149,7 @@ const analyzeCodeFlow = ai.defineFlow(
       // Reconstruct the table with proper formatting
       const lines = match.split('\n').filter(line => line.trim());
       const header = lines.find(line => line.includes('Approach') && line.includes('Time Complexity'));
-      const separator = '|----------|----------------|------------------|';
+      const separator = '|----------|-----------------|------------------|';
       const dataRows = lines.filter(line => 
         line.includes('|') && 
         !line.includes('Approach') && 
