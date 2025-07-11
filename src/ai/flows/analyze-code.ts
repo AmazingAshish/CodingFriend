@@ -82,10 +82,10 @@ First, provide at least two, and up to a maximum of {{maxSolutions}}, alternativ
 
 ### Solution: [Approach Name, e.g., Brute-Force]
 #### Algorithm
-Explain the step-by-step logic of the solution using a numbered list. Do not use a bullet point for the "Algorithm" title itself.
+Explain the step-by-step logic of the solution using a numbered list.
 
 #### Code
-Provide the complete code for this solution in a markdown code block. Do not use a bullet point for the "Code" title itself.
+Provide the complete code for this solution in a markdown code block.
 
 #### Complexity Analysis
 - **Time Complexity**: State the Big O time complexity (e.g., \`O(n^2)\`) and explain why.
@@ -93,8 +93,9 @@ Provide the complete code for this solution in a markdown code block. Do not use
 
 ---
 
-After providing the solutions, create a "Comparison Summary" section. This section must contain a Markdown table that compares all the solutions you provided. The table should have the columns: "Approach", "Time Complexity", and "Space Complexity".
+After providing all solutions, create a "Comparison Summary" section. This section must contain ONLY a Markdown table that compares all the solutions you provided. Do not add any other text. The table should have the columns: "Approach", "Time Complexity", and "Space Complexity".
 
+Example:
 ### Comparison Summary
 | Approach                | Time Complexity | Space Complexity |
 | ----------------------- | --------------- | ---------------- |
