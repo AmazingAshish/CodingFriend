@@ -33,7 +33,9 @@ function calculateCodeMetrics(code: string) {
   const cyclomaticComplexity = complexityKeywords.reduce((count, keyword) => {
     // A simple regex to find keywords, avoiding matches inside strings or comments is complex
     // This is a basic approximation
-    return count + (code.match(new RegExp(`\\b${keyword}\\b`, 'g')) || []).length;
+    const escapedKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(`\\b${escapedKeyword}\\b`, 'g');
+    return count + (code.match(regex) || []).length;
   }, 1);
 
   return {
