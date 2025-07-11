@@ -169,7 +169,7 @@ const EnhancedMarkdownRenderer = ({ content, activeTab, searchState, isDarkMode 
 
   const parseMarkdown = useCallback((markdown: string) => {
     // Enhanced regex to better detect table blocks
-    const parts = markdown.split(/(```(?:\w+)?\n[\s\S]*?\n```|\n\|.*?\|(?:\n\|.*?\|)*\n)/g);
+    const parts = markdown.split(/(```(?:\w+)?\n[\s\S]*?\n```|\|(?:.*?\|)+)/g);
     
     return parts.map((part, index) => {
       if (!part || !part.trim()) return null;
@@ -237,8 +237,7 @@ const EnhancedMarkdownRenderer = ({ content, activeTab, searchState, isDarkMode 
         .replace(/((<li>.*?<\/li>\s*)+)/gs, '<ul class="list-disc list-inside space-y-1 my-4 text-foreground/90">$1</ul>')
         .replace(/^\s*(\d+)\. (.*)/gm, '<li>$2</li>')
         .replace(/((<li>.*?<\/li>\s*)+)/gs, (match, p1) => {
-          const string = part;
-          const precedingText = string.substring(0, string.indexOf(match));
+          const precedingText = part.substring(0, part.indexOf(match));
           if (precedingText.includes('<ol')) {
             return p1;
           }
@@ -352,11 +351,6 @@ const ContentDisplay: FC<Omit<OutputDisplayProps, 'isLoading' | 'className'> & {
       >
         {activeTab === 'convert' && 'convertedCode' in result && result.convertedCode && (
           <div className="h-full relative">
-            <div className="absolute top-4 right-4 z-10">
-              <Badge variant="outline" className="bg-background/80 backdrop-blur-sm">
-                {result.convertedCode.split('\n').length} lines
-              </Badge>
-            </div>
             <SyntaxHighlighter
               language={targetLanguage}
               style={isDarkMode ? oneDark : oneLight}
