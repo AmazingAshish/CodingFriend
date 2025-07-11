@@ -1,4 +1,11 @@
 <div align="center">
+  <h1>🧠 Coding Friend</h1>
+  <strong>Your Ultimate AI-Powered Code Companion</strong>
+  <p>
+    An intelligent platform for real-time code conversion, in-depth analysis, and clear explanations across 35+ programming languages.
+  </p>
+</div>
+<div align="center">
   <a href="#">
     <img src="https://img.shields.io/badge/Next.js-15.3.3-black?style=for-the-badge&logo=next.js&logoColor=white" alt="Next.js" />
   </a>
@@ -18,13 +25,7 @@
 
 <br/>
 
-<div align="center">
-  <h1>🧠 Coding Friend</h1>
-  <strong>Your Ultimate AI-Powered Code Companion</strong>
-  <p>
-    An intelligent platform for real-time code conversion, in-depth analysis, and clear explanations across 35+ programming languages.
-  </p>
-</div>
+
 
 ---
 
@@ -141,4 +142,3 @@ Contributions are welcome and greatly appreciated! If you have an idea for an im
 ## 📄 License
 
 This project is licensed under the MIT License. See the `LICENSE` file for more details.
-# CodingFriend
