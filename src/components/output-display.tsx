@@ -7,31 +7,9 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark, oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Button } from './ui/button';
-import { 
-  Check, 
-  Clipboard, 
-  Download, 
-  Maximize2, 
-  Minimize2,
-  RefreshCw,
-  Code2,
-  FileText,
-  Lightbulb,
-  Zap,
-  Languages
-} from 'lucide-react';
-import { 
-  Accordion, 
-  AccordionContent, 
-  AccordionItem, 
-  AccordionTrigger 
-} from "@/components/ui/accordion";
-import { 
-  Tooltip, 
-  TooltipContent, 
-  TooltipProvider, 
-  TooltipTrigger 
-} from "@/components/ui/tooltip";
+import { Check, Clipboard, Download, Maximize2, Minimize2, RefreshCw, Code2, FileText, Lightbulb, Zap, } from 'lucide-react';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import type { ActiveTab, Result } from './code-companion';
@@ -55,48 +33,26 @@ interface SearchState {
 const ANIMATION_VARIANTS = {
   container: {
     hidden: { opacity: 0, scale: 0.95 },
-    visible: { 
-      opacity: 1, 
-      scale: 1,
-      transition: { duration: 0.3, ease: "easeOut" }
-    },
-    exit: { 
-      opacity: 0, 
-      scale: 0.95,
-      transition: { duration: 0.2, ease: "easeIn" }
-    }
+    visible: { opacity: 1, scale: 1, transition: { duration: 0.3, ease: "easeOut" } },
+    exit: { opacity: 0, scale: 0.95, transition: { duration: 0.2, ease: "easeIn" } }
   },
   content: {
     hidden: { opacity: 0, y: 20 },
-    visible: { 
-      opacity: 1, 
-      y: 0,
-      transition: { duration: 0.4, ease: "easeOut", delay: 0.1 }
-    }
+    visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: "easeOut", delay: 0.1 } }
   },
   stagger: {
     hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.05,
-        delayChildren: 0.1
-      }
-    }
+    visible: { opacity: 1, transition: { staggerChildren: 0.05, delayChildren: 0.1 } }
   },
   item: {
     hidden: { opacity: 0, x: -20 },
-    visible: { 
-      opacity: 1, 
-      x: 0,
-      transition: { duration: 0.3, ease: "easeOut" }
-    }
+    visible: { opacity: 1, x: 0, transition: { duration: 0.3, ease: "easeOut" } }
   }
 };
 
 const LoadingState: FC = () => {
   const [progress, setProgress] = useState(0);
-  
+
   useEffect(() => {
     const interval = setInterval(() => {
       setProgress(prev => prev >= 95 ? 95 : prev + Math.random() * 15);
@@ -105,7 +61,7 @@ const LoadingState: FC = () => {
   }, []);
 
   return (
-    <motion.div 
+    <motion.div
       className="p-6 h-full space-y-6"
       variants={ANIMATION_VARIANTS.stagger}
       initial="hidden"
@@ -115,7 +71,6 @@ const LoadingState: FC = () => {
         <motion.div variants={ANIMATION_VARIANTS.item}>
           <Skeleton className="h-8 w-1/3 bg-gradient-to-r from-muted/30 to-muted/60 animate-pulse" />
         </motion.div>
-        
         <motion.div variants={ANIMATION_VARIANTS.item} className="space-y-3">
           <Progress value={progress} className="h-2" />
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -123,13 +78,11 @@ const LoadingState: FC = () => {
             Processing your request...
           </div>
         </motion.div>
-        
         <motion.div variants={ANIMATION_VARIANTS.item} className="space-y-3">
           <Skeleton className="h-4 w-full bg-gradient-to-r from-muted/20 to-muted/40 animate-pulse" />
           <Skeleton className="h-4 w-4/5 bg-gradient-to-r from-muted/40 to-muted/20 animate-pulse" />
           <Skeleton className="h-20 w-full bg-gradient-to-r from-muted/30 to-muted/50 animate-pulse rounded-lg" />
         </motion.div>
-        
         <motion.div variants={ANIMATION_VARIANTS.item} className="space-y-3">
           <Skeleton className="h-8 w-1/2 bg-gradient-to-r from-muted/40 to-muted/60 animate-pulse" />
           <Skeleton className="h-4 w-full bg-gradient-to-r from-muted/20 to-muted/40 animate-pulse" />
@@ -141,7 +94,7 @@ const LoadingState: FC = () => {
 };
 
 const InitialState: FC = () => (
-  <motion.div 
+  <motion.div
     className="flex flex-col items-center justify-center h-full text-muted-foreground p-8 space-y-4"
     variants={ANIMATION_VARIANTS.content}
     initial="hidden"
@@ -157,28 +110,22 @@ const InitialState: FC = () => (
   </motion.div>
 );
 
-const EnhancedMarkdownRenderer = ({ 
-  content, 
-  activeTab, 
-  searchState, 
-  isDarkMode 
-}: { 
-  content: string; 
+const EnhancedMarkdownRenderer = ({ content, activeTab, searchState, isDarkMode }: {
+  content: string;
   activeTab: ActiveTab;
   searchState: SearchState;
   isDarkMode: boolean;
 }) => {
   const contentRef = useRef<HTMLDivElement>(null);
-  
+
   const highlightSearchTerms = useCallback((text: string) => {
     if (!searchState.query) return text;
-    
     const regex = new RegExp(`(${searchState.query})`, 'gi');
     return text.replace(regex, '<mark class="bg-yellow-200 dark:bg-yellow-900/50 px-1 rounded">$1</mark>');
   }, [searchState.query]);
 
   const renderTable = useCallback((tableMarkdown: string, highlightFn: (text: string) => string) => {
-    const lines = tableMarkdown.trim().split('\n');
+    const lines = tableMarkdown.trim().split('\n').filter(line => line.trim());
     if (lines.length < 2) return null;
 
     const header = lines[0].split('|').map(s => s.trim()).filter(Boolean);
@@ -191,7 +138,9 @@ const EnhancedMarkdownRenderer = ({
             <thead>
               <tr className="border-b border-border bg-muted/30">
                 {header.map((head, i) => (
-                  <th key={i} className="p-3 text-left font-semibold text-foreground"
+                  <th
+                    key={i}
+                    className="p-3 text-left font-semibold text-foreground"
                     dangerouslySetInnerHTML={{ __html: highlightFn(head.replace(/`/g, '')) }}
                   />
                 ))}
@@ -201,11 +150,11 @@ const EnhancedMarkdownRenderer = ({
               {rows.map((row, i) => (
                 <tr key={i} className="border-b border-border/30 last:border-b-0 hover:bg-muted/20 transition-colors duration-150">
                   {row.map((cell, j) => (
-                    <td key={j} className="p-3"
+                    <td
+                      key={j}
+                      className="p-3"
                       dangerouslySetInnerHTML={{
-                        __html: highlightFn(cell.replace(/`([^`]+)`/g,
-                          '<code class="inline-code text-sm font-mono bg-muted/60 dark:bg-muted/40 text-accent-foreground px-1.5 py-0.5 rounded-md">$1</code>'
-                        ))
+                        __html: highlightFn(cell.replace(/`([^`]+)`/g, '<code class="inline-code text-sm font-mono bg-muted/60 dark:bg-muted/40 text-accent-foreground px-1.5 py-0.5 rounded-md">$1</code>'))
                       }}
                     />
                   ))}
@@ -219,18 +168,23 @@ const EnhancedMarkdownRenderer = ({
   }, []);
 
   const parseMarkdown = useCallback((markdown: string) => {
-    const parts = markdown.split(/(```(?:\w+)?\n[\s\S]*?\n```|\|(?:[^\n\r|]*\|)+)/g);
+    // Enhanced regex to better detect table blocks
+    const parts = markdown.split(/(```(?:\w+)?\n[\s\S]*?\n```|\n\|.*?\|(?:\n\|.*?\|)*\n)/g);
     
     return parts.map((part, index) => {
+      if (!part || !part.trim()) return null;
+
+      // Code blocks
       if (part.startsWith('```')) {
         const codeBlockMatch = part.match(/```(\w+)?\n([\s\S]*?)\n```/);
         if (!codeBlockMatch) return <div key={index}>{part}</div>;
-
+        
         const language = codeBlockMatch[1] || 'text';
         const code = codeBlockMatch[2].trim();
+
         return (
-          <motion.div 
-            key={`code-${index}`} 
+          <motion.div
+            key={`code-${index}`}
             className="not-prose my-6 rounded-lg bg-card/70 border overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200"
             variants={ANIMATION_VARIANTS.item}
             initial="hidden"
@@ -245,10 +199,16 @@ const EnhancedMarkdownRenderer = ({
                 {code.split('\n').length} lines
               </Badge>
             </div>
-            <SyntaxHighlighter 
-              language={language} 
+            <SyntaxHighlighter
+              language={language}
               style={isDarkMode ? oneDark : oneLight}
-              customStyle={{ backgroundColor: 'transparent', padding: '1rem', margin: 0, fontSize: '14px', lineHeight: '1.5' }}
+              customStyle={{
+                backgroundColor: 'transparent',
+                padding: '1rem',
+                margin: 0,
+                fontSize: '14px',
+                lineHeight: '1.5'
+              }}
               showLineNumbers
               wrapLongLines
               className="!bg-transparent"
@@ -258,12 +218,13 @@ const EnhancedMarkdownRenderer = ({
           </motion.div>
         );
       }
-      
-      if (part.startsWith('|')) {
+
+      // Table detection
+      if (part.includes('|') && part.split('\n').filter(line => line.trim().includes('|')).length >= 2) {
         return <div key={index}>{renderTable(part, highlightSearchTerms)}</div>;
       }
-      
-      const partString = part;
+
+      // Regular markdown parsing
       let html = part
         .replace(/^#### (.*$)/gim, '<h4 class="font-semibold text-lg !mt-6 !mb-3 text-foreground">$1</h4>')
         .replace(/^### (.*$)/gim, '<h3 class="font-semibold text-xl !mt-8 !mb-4 text-foreground">$1</h3>')
@@ -276,33 +237,34 @@ const EnhancedMarkdownRenderer = ({
         .replace(/((<li>.*?<\/li>\s*)+)/gs, '<ul class="list-disc list-inside space-y-1 my-4 text-foreground/90">$1</ul>')
         .replace(/^\s*(\d+)\. (.*)/gm, '<li>$2</li>')
         .replace(/((<li>.*?<\/li>\s*)+)/gs, (match, p1) => {
-            const precedingText = partString.substring(0, partString.indexOf(match));
-            if (precedingText.includes('<ol')) {
-                return p1;
-            }
-            if (p1.includes('1.')) {
-                return `<ol class="list-decimal list-inside space-y-1 my-4 text-foreground/90">${p1}</ol>`;
-            }
-            return `<ul class="list-disc list-inside space-y-1 my-4 text-foreground/90">${p1}</ul>`;
+          const string = part;
+          const precedingText = string.substring(0, string.indexOf(match));
+          if (precedingText.includes('<ol')) {
+            return p1;
+          }
+          if (p1.includes('1.')) {
+            return `<ol class="list-decimal list-inside space-y-1 my-4 text-foreground/90">${p1}</ol>`;
+          }
+          return `<ul class="list-disc list-inside space-y-1 my-4 text-foreground/90">${p1}</ul>`;
         });
-        
+
       return (
-        <motion.div 
-            key={`text-${index}`}
-            variants={ANIMATION_VARIANTS.item}
-            initial="hidden"
-            animate="visible"
-            className="prose prose-sm dark:prose-invert max-w-none leading-relaxed"
-            dangerouslySetInnerHTML={{ __html: highlightSearchTerms(html) }}
+        <motion.div
+          key={`text-${index}`}
+          variants={ANIMATION_VARIANTS.item}
+          initial="hidden"
+          animate="visible"
+          className="prose prose-sm dark:prose-invert max-w-none leading-relaxed"
+          dangerouslySetInnerHTML={{ __html: highlightSearchTerms(html) }}
         />
       );
     });
   }, [highlightSearchTerms, isDarkMode, renderTable]);
 
   const renderSolutions = useCallback((content: string) => {
-    const sections = content.split('---');
+    const sections = content.split(/(?=### Solution:|### Comparison Summary)/);
     const solutions = sections.filter(sec => sec.includes('### Solution:'));
-    const comparisonTable = sections.find(sec => sec.includes('### Comparison Summary'));
+    const comparisonSection = sections.find(sec => sec.includes('### Comparison Summary'));
 
     return (
       <motion.div
@@ -315,7 +277,7 @@ const EnhancedMarkdownRenderer = ({
             const titleMatch = solution.match(/### Solution: (.*)/);
             const title = titleMatch ? titleMatch[1] : `Solution ${index + 1}`;
             const solutionContent = solution.replace(/### Solution: .*\n/, '');
-            
+
             return (
               <motion.div key={index} variants={ANIMATION_VARIANTS.item}>
                 <AccordionItem value={`item-${index}`} className="border rounded-lg mb-4 overflow-hidden">
@@ -337,14 +299,12 @@ const EnhancedMarkdownRenderer = ({
             );
           })}
         </Accordion>
-        
-        {comparisonTable && (
+
+        {comparisonSection && (
           <motion.div className="mt-8" variants={ANIMATION_VARIANTS.item}>
-            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-              <Lightbulb className="h-5 w-5 text-primary" />
-              Comparison Summary
-            </h3>
-            {parseMarkdown(comparisonTable)}
+            <div className="prose prose-sm dark:prose-invert max-w-none">
+              {parseMarkdown(comparisonSection)}
+            </div>
           </motion.div>
         )}
       </motion.div>
@@ -352,33 +312,28 @@ const EnhancedMarkdownRenderer = ({
   }, [parseMarkdown]);
 
   return (
-    <div 
-      ref={contentRef}
-      className="max-w-none p-6 text-foreground/90 leading-relaxed"
-    >
-      {activeTab === 'solutions' ? renderSolutions(content) : <div className="prose prose-sm dark:prose-invert max-w-none">{parseMarkdown(content)}</div>}
+    <div ref={contentRef} className="max-w-none p-6 text-foreground/90 leading-relaxed">
+      {activeTab === 'solutions' ? renderSolutions(content) : (
+        <div className="prose prose-sm dark:prose-invert max-w-none">
+          {parseMarkdown(content)}
+        </div>
+      )}
     </div>
   );
 };
 
-const ContentDisplay: FC<Omit<OutputDisplayProps, 'isLoading' | 'className'> & { 
+const ContentDisplay: FC<Omit<OutputDisplayProps, 'isLoading' | 'className'> & {
   searchState: SearchState;
   isDarkMode: boolean;
   isFullscreen: boolean;
-}> = ({ 
-  result, 
-  activeTab, 
-  targetLanguage, 
-  searchState, 
-  isDarkMode,
-  isFullscreen 
-}) => {
+}> = ({ result, activeTab, targetLanguage, searchState, isDarkMode, isFullscreen }) => {
   if (!result) return <InitialState />;
 
   const getContentToDisplay = () => {
-    if ('convertedCode' in result) return result.convertedCode;
-    if ('explanation' in result) return result.explanation;
-    if ('analysis' in result) return result.analysis;
+    if (!result) return "";
+    if ('convertedCode' in result && result.convertedCode) return result.convertedCode;
+    if ('explanation' in result && result.explanation) return result.explanation;
+    if ('analysis' in result && result.analysis) return result.analysis;
     return "";
   };
 
@@ -415,19 +370,15 @@ const ContentDisplay: FC<Omit<OutputDisplayProps, 'isLoading' | 'className'> & {
               }}
               wrapLongLines={true}
               showLineNumbers={true}
-              lineNumberStyle={{ 
-                opacity: 0.6, 
-                minWidth: '3em',
-                paddingRight: '1em'
-              }}
+              lineNumberStyle={{ opacity: 0.6, minWidth: '3em', paddingRight: '1em' }}
               className="!bg-card/70 h-full scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent"
             >
               {result.convertedCode}
             </SyntaxHighlighter>
           </div>
         )}
-        
-        {(activeTab === 'explain' || activeTab === 'solutions') && (
+
+        {(activeTab === 'explain' || activeTab === 'solutions') && contentToDisplay && (
           <div className="h-full overflow-y-auto scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent">
             <EnhancedMarkdownRenderer
               content={contentToDisplay}
@@ -442,17 +393,17 @@ const ContentDisplay: FC<Omit<OutputDisplayProps, 'isLoading' | 'className'> & {
   );
 };
 
-export const OutputDisplay: FC<OutputDisplayProps> = ({ 
-  isLoading, 
-  result, 
-  activeTab, 
+export const OutputDisplay: FC<OutputDisplayProps> = ({
+  isLoading,
+  result,
+  activeTab,
   targetLanguage,
   onRefresh,
   className
 }) => {
   const [hasCopied, setHasCopied] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(true);
+  const [isDarkMode, setIsDarkMode] = useState(false);
   const [searchState, setSearchState] = useState<SearchState>({
     query: '',
     matches: [],
@@ -464,18 +415,37 @@ export const OutputDisplay: FC<OutputDisplayProps> = ({
     if (!result) return null;
     
     const content = (() => {
-      if ('convertedCode' in result) return result.convertedCode;
-      if ('explanation' in result) return result.explanation;
-      if ('analysis' in result) return result.analysis;
+      if (!result) return "";
+      if ('convertedCode' in result && result.convertedCode) return result.convertedCode;
+      if ('explanation' in result && result.explanation) return result.explanation;
+      if ('analysis' in result && result.analysis) return result.analysis;
       return "";
     })();
-    
+
+    if (!content) return null;
+
     return {
       characters: content.length,
       words: content.split(/\s+/).filter(Boolean).length,
       lines: content.split('\n').length
     };
   }, [result]);
+
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      setIsDarkMode(document.documentElement.classList.contains('dark'));
+    });
+
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class'],
+    });
+
+    // Set initial value
+    setIsDarkMode(document.documentElement.classList.contains('dark'));
+
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     if (hasCopied) {
@@ -487,7 +457,7 @@ export const OutputDisplay: FC<OutputDisplayProps> = ({
   const getTitle = () => {
     if (!result && !isLoading) return "Output";
     if (isLoading) return "Processing...";
-    
+
     const icons = {
       explain: <FileText className="h-4 w-4" />,
       solutions: <Lightbulb className="h-4 w-4" />,
@@ -510,9 +480,9 @@ export const OutputDisplay: FC<OutputDisplayProps> = ({
 
   const getCopyContent = () => {
     if (!result) return "";
-    if ('convertedCode' in result) return result.convertedCode;
-    if ('explanation' in result) return result.explanation;
-    if ('analysis' in result) return result.analysis;
+    if ('convertedCode' in result && result.convertedCode) return result.convertedCode;
+    if ('explanation' in result && result.explanation) return result.explanation;
+    if ('analysis' in result && result.analysis) return result.analysis;
     return "";
   };
 
@@ -527,13 +497,13 @@ export const OutputDisplay: FC<OutputDisplayProps> = ({
   const handleDownload = useCallback(() => {
     const content = getCopyContent();
     if (!content) return;
-    
-    const extension = activeTab === 'convert' ? 
-      (targetLanguage === 'javascript' ? 'js' : 
-       targetLanguage === 'typescript' ? 'ts' : 
-       targetLanguage === 'python' ? 'py' : 'txt') : 
-      'md';
-    
+
+    const extension = activeTab === 'convert' 
+      ? (targetLanguage === 'javascript' ? 'js' : 
+         targetLanguage === 'typescript' ? 'ts' : 
+         targetLanguage === 'python' ? 'py' : 'txt')
+      : 'md';
+
     const blob = new Blob([content], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -555,9 +525,9 @@ export const OutputDisplay: FC<OutputDisplayProps> = ({
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
-          <Button 
-            variant={variant} 
-            size="icon" 
+          <Button
+            variant={variant}
+            size="icon"
             onClick={onClick}
             disabled={disabled}
             className="h-8 w-8 text-muted-foreground hover:text-foreground transition-colors"
@@ -575,11 +545,12 @@ export const OutputDisplay: FC<OutputDisplayProps> = ({
   return (
     <Card className={`flex flex-col glassmorphism transition-all duration-300 min-h-[400px] ${
       isFullscreen ? 'fixed inset-4 z-50 shadow-2xl' : 'relative overflow-hidden'
-    } ${className}`} style={{ height: isFullscreen ? 'auto' : undefined }}>
+    } ${className}`}
+    style={{ height: isFullscreen ? 'auto' : undefined }}>
       <CardHeader className="flex flex-row items-center justify-between p-4 border-b border-border/20 bg-background/50 backdrop-blur-sm">
         <div className="flex items-center gap-4">
           <CardTitle className="text-base font-semibold">{getTitle()}</CardTitle>
-          {contentStats && (
+          {contentStats && !isLoading && (
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
               <Badge variant="outline" className="text-xs px-2 py-1">
                 {contentStats.lines} lines
@@ -590,7 +561,7 @@ export const OutputDisplay: FC<OutputDisplayProps> = ({
             </div>
           )}
         </div>
-        
+
         {result && !isLoading && (
           <div className="flex items-center gap-1">
             <ActionButton
@@ -598,13 +569,11 @@ export const OutputDisplay: FC<OutputDisplayProps> = ({
               tooltip="Download"
               onClick={handleDownload}
             />
-            
             <ActionButton
               icon={hasCopied ? <Check className="h-4 w-4 text-green-500" /> : <Clipboard className="h-4 w-4" />}
               tooltip={hasCopied ? "Copied!" : "Copy"}
               onClick={handleCopy}
             />
-            
             {onRefresh && (
               <ActionButton
                 icon={<RefreshCw className="h-4 w-4" />}
@@ -612,7 +581,6 @@ export const OutputDisplay: FC<OutputDisplayProps> = ({
                 onClick={onRefresh}
               />
             )}
-            
             <ActionButton
               icon={isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
               tooltip={isFullscreen ? "Exit fullscreen" : "Fullscreen"}
@@ -621,7 +589,7 @@ export const OutputDisplay: FC<OutputDisplayProps> = ({
           </div>
         )}
       </CardHeader>
-      
+
       <CardContent className="flex-1 overflow-auto p-0 relative">
         {isLoading ? (
           <LoadingState />
