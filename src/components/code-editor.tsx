@@ -6,6 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from './ui/button';
 import { Clipboard, Check } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
 
 interface CodeEditorProps {
   code: string;
@@ -71,9 +72,18 @@ export const CodeEditor: FC<CodeEditorProps> = ({ code, setCode, language }) => 
     <Card className="flex flex-col glassmorphism overflow-hidden min-h-[400px]">
       <CardHeader className="flex flex-row items-center justify-between p-4 border-b border-border/20">
         <CardTitle className="text-sm font-mono text-muted-foreground">{`${language}${getFileExtension(language)}`}</CardTitle>
-        <Button variant="ghost" size="icon" onClick={handleCopy} className="h-8 w-8 text-muted-foreground" aria-label="Copy code">
-          {hasCopied ? <Check className="h-4 w-4 text-green-500" /> : <Clipboard className="h-4 w-4" />}
-        </Button>
+        <TooltipProvider>
+            <Tooltip>
+                <TooltipTrigger asChild>
+                    <Button variant="ghost" size="icon" onClick={handleCopy} className="h-8 w-8 text-muted-foreground" aria-label="Copy code">
+                        {hasCopied ? <Check className="h-4 w-4 text-green-500" /> : <Clipboard className="h-4 w-4" />}
+                    </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">
+                    <p>{hasCopied ? 'Copied!' : 'Copy code'}</p>
+                </TooltipContent>
+            </Tooltip>
+        </TooltipProvider>
       </CardHeader>
       <CardContent className="flex-1 flex relative p-0">
         <Textarea

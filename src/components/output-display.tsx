@@ -11,19 +11,9 @@ import {
   Check, 
   Clipboard, 
   Download, 
-  Search, 
-  ChevronDown, 
-  ChevronUp, 
   Maximize2, 
   Minimize2,
-  Eye,
-  EyeOff,
   RefreshCw,
-  Share2,
-  Bookmark,
-  BookmarkCheck,
-  Sun,
-  Moon,
   Code2,
   FileText,
   Lightbulb,
@@ -283,9 +273,16 @@ const EnhancedMarkdownRenderer = ({
         .replace(/^\s*[-*] (.*)/gm, '<li>$1</li>')
         .replace(/((<li>.*?<\/li>\s*)+)/gs, '<ul class="list-disc list-inside space-y-1 my-4 text-foreground/90">$1</ul>')
         .replace(/^\s*(\d+)\. (.*)/gm, '<li>$2</li>')
-        .replace(/((<li>.*?<\/li>\s*)+)/gs, (match) => {
-          if(match.includes('1.')) return `<ol class="list-decimal list-inside space-y-1 my-4 text-foreground/90">${match}</ol>`;
-          return `<ul class="list-disc list-inside space-y-1 my-4 text-foreground/90">${match}</ul>`;
+        .replace(/((<li>.*?<\/li>\s*)+)/gs, (match, p1, offset, string) => {
+            const listContent = p1;
+            const precedingText = string.substring(0, offset);
+            if (precedingText.includes('<ol')) {
+                return listContent;
+            }
+            if (listContent.includes('1.')) {
+                return `<ol class="list-decimal list-inside space-y-1 my-4 text-foreground/90">${listContent}</ol>`;
+            }
+            return `<ul class="list-disc list-inside space-y-1 my-4 text-foreground/90">${listContent}</ul>`;
         });
         
       return (
@@ -453,7 +450,6 @@ export const OutputDisplay: FC<OutputDisplayProps> = ({
   className
 }) => {
   const [hasCopied, setHasCopied] = useState(false);
-  const [isBookmarked, setIsBookmarked] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [searchState, setSearchState] = useState<SearchState>({
@@ -548,16 +544,6 @@ export const OutputDisplay: FC<OutputDisplayProps> = ({
     URL.revokeObjectURL(url);
   }, [result, activeTab, targetLanguage]);
 
-  const handleShare = useCallback(() => {
-    const content = getCopyContent();
-    if (navigator.share && content) {
-      navigator.share({
-        title: `${activeTab} Result`,
-        text: content.slice(0, 200) + (content.length > 200 ? '...' : ''),
-      }).catch((error) => console.log('Error sharing:', error));
-    }
-  }, [result, activeTab]);
-
   const ActionButton: FC<{
     icon: React.ReactNode;
     tooltip: string;
@@ -578,7 +564,7 @@ export const OutputDisplay: FC<OutputDisplayProps> = ({
             {icon}
           </Button>
         </TooltipTrigger>
-        <TooltipContent>
+        <TooltipContent side="bottom">
           <p>{tooltip}</p>
         </TooltipContent>
       </Tooltip>
@@ -606,31 +592,6 @@ export const OutputDisplay: FC<OutputDisplayProps> = ({
         
         {result && !isLoading && (
           <div className="flex items-center gap-1">
-            <ActionButton
-              icon={isDarkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-              tooltip={isDarkMode ? "Light mode" : "Dark mode"}
-              onClick={() => setIsDarkMode(!isDarkMode)}
-            />
-            
-            <ActionButton
-              icon={<Search className="h-4 w-4" />}
-              tooltip="Search in content"
-              onClick={() => setSearchState(prev => ({ ...prev, isSearchOpen: !prev.isSearchOpen }))}
-            />
-            
-            <ActionButton
-              icon={isBookmarked ? <BookmarkCheck className="h-4 w-4" /> : <Bookmark className="h-4 w-4" />}
-              tooltip={isBookmarked ? "Remove bookmark" : "Bookmark"}
-              onClick={() => setIsBookmarked(!isBookmarked)}
-            />
-            
-            <ActionButton
-              icon={<Share2 className="h-4 w-4" />}
-              tooltip="Share"
-              onClick={handleShare}
-              disabled={typeof navigator.share === 'undefined'}
-            />
-            
             <ActionButton
               icon={<Download className="h-4 w-4" />}
               tooltip="Download"

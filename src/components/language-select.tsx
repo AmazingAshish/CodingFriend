@@ -8,7 +8,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Label } from "./ui/label";
 
 export const languages = [
   { value: 'javascript', label: 'JavaScript' },
@@ -36,13 +35,11 @@ export const languages = [
 interface LanguageSelectProps {
   value: string;
   onChange: (value: string) => void;
-  label?: string;
 }
 
-export const LanguageSelect: FC<LanguageSelectProps> = ({ value, onChange, label }) => {
+export const LanguageSelect: FC<LanguageSelectProps> = ({ value, onChange }) => {
   return (
     <div className="flex items-center gap-2">
-      {label && <Label className="text-xs">{label}</Label>}
       <Select value={value} onValueChange={onChange}>
         <SelectTrigger className="w-full md:w-[140px]">
           <SelectValue placeholder="Select language" />

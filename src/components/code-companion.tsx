@@ -59,7 +59,6 @@ export const CodeCompanion = () => {
   const [results, setResults] = useState<ResultsState>({});
   const [loadingStates, setLoadingStates] = useState<RequestState>({});
 
-  const [isDetecting, setIsDetecting] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<ActiveTab>("explain");
   const { toast } = useToast();
 
@@ -68,7 +67,6 @@ export const CodeCompanion = () => {
   const handleLanguageDetection = useCallback(async (codeToDetect: string) => {
     if (!codeToDetect.trim()) return;
 
-    setIsDetecting(true);
     try {
       const res = await detectLanguage({ code: codeToDetect });
       if (res.language && languages.some(l => l.value === res.language)) {
@@ -76,8 +74,6 @@ export const CodeCompanion = () => {
       }
     } catch (error) {
       console.error("Language detection failed:", error);
-    } finally {
-      setIsDetecting(false);
     }
   }, []);
 
@@ -162,13 +158,10 @@ export const CodeCompanion = () => {
                 >
                   <ActionToolbar
                     activeTab={activeTab}
-                    sourceLanguage={sourceLanguage}
-                    setSourceLanguage={setSourceLanguage}
                     targetLanguage={targetLanguage}
                     setTargetLanguage={setTargetLanguage}
                     isEli5={isEli5}
                     setIsEli5={setIsEli5}
-                    isDetecting={isDetecting}
                   />
                 </motion.div>
               </AnimatePresence>
