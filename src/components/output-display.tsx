@@ -30,6 +30,48 @@ interface SearchState {
   isSearchOpen: boolean;
 }
 
+const CodeCopyButton: FC<{ code: string }> = ({ code }) => {
+  const [hasCopied, setHasCopied] = useState(false);
+
+  const handleCopy = useCallback(() => {
+    navigator.clipboard.writeText(code).then(() => {
+      setHasCopied(true);
+    });
+  }, [code]);
+
+  useEffect(() => {
+    if (hasCopied) {
+      const timer = setTimeout(() => setHasCopied(false), 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [hasCopied]);
+
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            size="icon"
+            variant="ghost"
+            className="h-7 w-7 text-muted-foreground hover:text-foreground"
+            onClick={handleCopy}
+            aria-label="Copy code"
+          >
+            {hasCopied ? (
+              <Check className="h-4 w-4 text-green-500" />
+            ) : (
+              <Clipboard className="h-4 w-4" />
+            )}
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent side="bottom">
+          <p>{hasCopied ? 'Copied!' : 'Copy to clipboard'}</p>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
+};
+
 const ANIMATION_VARIANTS = {
   container: {
     hidden: { opacity: 0, scale: 0.95 },
@@ -201,7 +243,7 @@ const EnhancedMarkdownRenderer = ({
         return (
           <motion.div
             key={`code-${index}`}
-            className="not-prose my-6 rounded-lg bg-card/70 border overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200"
+            className="not-prose relative my-6 rounded-lg bg-card/70 border overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200 group"
             variants={ANIMATION_VARIANTS.item}
             initial="hidden"
             animate="visible"
@@ -211,9 +253,9 @@ const EnhancedMarkdownRenderer = ({
                 <Code2 className="h-4 w-4 text-muted-foreground" />
                 <span className="text-sm font-medium text-muted-foreground capitalize">{language}</span>
               </div>
-              <Badge variant="outline" className="text-xs">
-                {code.split('\n').length} lines
-              </Badge>
+              <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                <CodeCopyButton code={code} />
+              </div>
             </div>
             <SyntaxHighlighter
               language={language}
@@ -368,7 +410,10 @@ const ContentDisplay: FC<Omit<OutputDisplayProps, 'isLoading' | 'className'> & {
         className={`h-full relative ${isFullscreen ? 'p-4' : ''}`}
       >
         {activeTab === 'convert' && 'convertedCode' in result && result.convertedCode && (
-          <div className="h-full relative">
+          <div className="h-full relative group">
+             <div className="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+              <CodeCopyButton code={result.convertedCode} />
+            </div>
             <SyntaxHighlighter
               language={targetLanguage}
               style={isDarkMode ? oneDark : oneLight}
