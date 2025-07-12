@@ -261,7 +261,7 @@ const EnhancedMarkdownRenderer = ({
               language={language}
               style={isDarkMode ? oneDark : oneLight}
               customStyle={{
-                backgroundColor: 'transparent',
+                background: 'transparent',
                 padding: '1rem',
                 margin: 0,
                 fontSize: '14px',
@@ -420,7 +420,7 @@ const ContentDisplay: FC<Omit<OutputDisplayProps, 'isLoading' | 'className'> & {
               customStyle={{
                 width: '100%',
                 height: '100%',
-                backgroundColor: 'transparent',
+                background: 'transparent',
                 padding: '1rem',
                 fontSize: '14px',
                 lineHeight: '1.6'
